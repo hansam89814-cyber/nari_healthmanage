@@ -344,7 +344,7 @@ input.cf,td select,td input[type=number]{border:1px solid #d1d5db}
       <span class="row">
         <button class="btn" id="add" type="button">+ 근로자 추가</button>
         <button class="btn gold" id="imp" type="button">사후관리에서 불러오기</button>
-        <button class="btn ghost" id="xlsx" type="button">엑셀 내보내기</button>
+        <button class="btn ghost" id="xlsx" type="button">엑셀 내보내기</button><label class="btn ghost" style="display:inline-block">엑셀 불러오기<input type="file" id="xlsxIn" accept=".xlsx" hidden></label>
         <button class="btn ghost" id="prt" type="button">대장 인쇄</button>
       </span>
     </div>
@@ -354,7 +354,7 @@ input.cf,td select,td input[type=number]{border:1px solid #d1d5db}
     </div>
     <div class="printhead"><b>취약근로자 관리대장</b><span id="printSite"></span></div>
     <div class="tblwrap"><table class="led" id="led"></table></div>
-    <p class="muted noprint" style="margin:8px 0 0">줄을 누르면 근로자 정보를 고칠 수 있어요. 입력한 내용은 이 기기의 브라우저에만 저장됩니다. 다른 기기로 옮길 때는 [백업 저장]을 쓰세요.</p>
+    <p class="muted noprint" style="margin:8px 0 0">[엑셀 내보내기]로 받은 파일에 내용을 고치거나 새 줄을 추가한 뒤 [엑셀 불러오기]로 올리면 관리대장에 반영돼요. 줄을 누르면 근로자 정보를 고칠 수 있어요. 입력한 내용은 이 기기의 브라우저에만 저장됩니다. 다른 기기로 옮길 때는 [백업 저장]을 쓰세요.</p>
     <div class="row noprint" style="margin-top:10px">
       <button class="btn ghost sm" id="bak" type="button">백업 저장</button>
       <label class="btn ghost sm">백업 불러오기<input type="file" id="res" accept=".json" hidden></label>
@@ -437,7 +437,7 @@ input.cf,td select,td input[type=number]{border:1px solid #d1d5db}
       <label class="f"><textarea data-k="note" rows="2"></textarea></label>
       <div class="row" style="margin-top:12px;justify-content:space-between">
         <button class="btn del" id="del" type="button">이 근로자 삭제</button>
-        <button class="btn" id="back" type="button">관리대장으로</button>
+        <span class="row"><span id="dirtyMsg" style="color:#a3261a;font-size:13.5px;font-weight:600"></span><button class="btn ghost" id="back" type="button">취소</button><button class="btn" id="saveW" type="button" style="min-width:110px">저장</button></span>
       </div>
     </div>
   </div>
@@ -557,13 +557,13 @@ function render(){
 /* ---------- 입력 화면 ---------- */
 function getK(o,k){return k.split('.').reduce((a,p)=>a?.[p],o)}
 function setK(o,k,v){const p=k.split('.');let a=o;for(let i=0;i<p.length-1;i++)a=a[p[i]]=a[p[i]]||{};a[p[p.length-1]]=v}
-function openW(id){cur=W.find(w=>w.id===id);if(!cur)return;tab('edit');fill()}
+function openW(id){if(!leaveOk())return;const w=W.find(w=>w.id===id);if(!w)return;cur=JSON.parse(JSON.stringify(w));setClean();tab('edit',true);fill()}
 function fill(){if(!cur){$('#form').style.display='none';$('#noSel').style.display='';return}
   $('#form').style.display='flex';$('#noSel').style.display='none';
   $$('#form [data-k]').forEach(el=>{const v=getK(cur,el.dataset.k);if(el.type==='checkbox')el.checked=!!v;else el.value=v??''});
   $('#lgDate').value=KST();$('#lgS').value='';$('#lgD').value='';$('#lgG').value='';$('#lgGt').value='';$('#lgMed').value='';$('#lgNote').value='';refresh()}
 function refresh(){const j=judge(cur);
-  {const ai=$('[data-k=age]');if(ai){if(cur.birth){const v=ageOf(cur);ai.value=v??'';ai.readOnly=true;ai.style.background='#f3f4f6';ai.title='생년월일로 자동 계산돼요';if(String(cur.age)!==String(v??'')){cur.age=v??'';save()}}else{ai.readOnly=false;ai.style.background='';ai.title=''}}}
+  {const ai=$('[data-k=age]');if(ai){if(cur.birth){const v=ageOf(cur);ai.value=v??'';ai.readOnly=true;ai.style.background='#f3f4f6';ai.title='생년월일로 자동 계산돼요';if(String(cur.age)!==String(v??'')){cur.age=v??''}}else{ai.readOnly=false;ai.style.background='';ai.title=''}}}
   $('#oldBox').style.display=j.old?'':'none';
   $('#bpBox').style.display=j.bpOut?'':'none';
   $$('.v-bp').forEach(s=>s.textContent=`${cur.bpS||'-'}/${cur.bpD||'-'} · 기준 ${CF.hiS}/${CF.hiD} 이상 또는 ${CF.loS}/${CF.loD} 이하`);
@@ -574,16 +574,18 @@ function refresh(){const j=judge(cur);
   $('#cycle').textContent=j.cyc?`· ${j.cyc}`:'';
   const L=[...cur.logs].sort((a,b)=>a.date<b.date?1:-1);
   $('#logs').innerHTML=L.length?`<table class="logt"><tr><th>상담일</th><th>혈압</th><th>혈당</th><th>복용약</th><th>내용</th><th></th></tr>${L.map(l=>`<tr><td>${l.date}</td><td>${l.s||l.d?(bpHiL(l)?red:x=>x)(`${esc(l.s)}/${esc(l.d)}`):''}</td><td>${(gHi(l)?red:x=>x)(esc(gfmt(l)))}</td><td>${esc(l.med)}</td><td>${esc(l.note)}</td><td><button class="btn del sm" data-ld="${l.id}" type="button">삭제</button></td></tr>`).join('')}</table>`:'<p class="muted" style="margin:0">아직 상담 기록이 없어요.</p>';
-  $$('#logs [data-ld]').forEach(b=>b.onclick=()=>{if(!confirm('이 상담 기록을 지울까요?'))return;cur.logs=cur.logs.filter(l=>l.id!==b.dataset.ld);save();refresh()})}
-$$('#form [data-k]').forEach(el=>{const h=()=>{if(!cur)return;let v=el.type==='checkbox'?el.checked:el.value;setK(cur,el.dataset.k,v);save();refresh()};el.addEventListener(el.type==='checkbox'||el.tagName==='SELECT'?'change':'input',h)});
+  $$('#logs [data-ld]').forEach(b=>b.onclick=()=>{if(!confirm('이 상담 기록을 지울까요?'))return;cur.logs=cur.logs.filter(l=>l.id!==b.dataset.ld);setDirty();refresh()})}
+$$('#form [data-k]').forEach(el=>{const h=()=>{if(!cur)return;let v=el.type==='checkbox'?el.checked:el.value;setK(cur,el.dataset.k,v);setDirty();refresh()};el.addEventListener(el.type==='checkbox'||el.tagName==='SELECT'?'change':'input',h)});
 $('#lgAdd').onclick=()=>{if(!cur)return;const d=$('#lgDate').value||KST(),s=$('#lgS').value.trim(),dd=$('#lgD').value.trim();
   const gl=$('#lgG').value.trim();if(!s&&!dd&&!gl&&!$('#lgNote').value.trim()&&!$('#lgMed').value){alert('혈압·혈당이나 상담 내용을 입력하세요.');return}
   cur.logs.push({id:uid(),date:d,s,d:dd,g:gl,gt:gl?$('#lgGt').value:'',med:$('#lgMed').value,note:$('#lgNote').value.trim()});
   if(s&&dd&&(!cur.bpDate||d>=cur.bpDate)){cur.bpS=s;cur.bpD=dd;cur.bpDate=d}
-  save();fill();jCount()};
-$('#add').onclick=()=>{const w=blank();W.push(w);save();openW(w.id);setTimeout(()=>$('[data-k=name]').focus(),50)};
-$('#del').onclick=()=>{if(!cur||!confirm(`${cur.name||'이 근로자'}를 관리대장에서 지울까요?`))return;W=W.filter(w=>w!==cur);cur=null;save();tab('list')};
-$('#back').onclick=()=>tab('list');
+  setDirty();fill()};
+$('#add').onclick=()=>{if(!leaveOk())return;cur=blank();cur.__new=true;setClean();tab('edit',true);fill();setTimeout(()=>$('[data-k=name]').focus(),50)};
+$('#del').onclick=()=>{if(!cur)return;if(cur.__new){if(!confirm('입력하던 근로자를 저장하지 않고 지울까요?'))return}else if(!confirm(`${cur.name||'이 근로자'}를 관리대장에서 지울까요?`))return;
+  const nw=cur.__new;W=W.filter(w=>w.id!==cur.id);if(!nw)save();setClean();cur=null;tab('list',true)};
+$('#back').onclick=()=>{if(leaveOk())tab('list',true)};
+$('#saveW').onclick=()=>saveW();
 $('#q').oninput=render;$('#fAll').onchange=render;
 
 /* ---------- 사후관리에서 불러오기 ---------- */
@@ -629,20 +631,21 @@ $('#cfReset').onclick=()=>{CF=Object.assign({},CF0);saveCf();fillCf();render()};
 /* ---------- 엑셀 ---------- */
 $('#xlsx').onclick=()=>{const t=KST();const list=W.map(w=>({w,j:judge(w)})).filter(x=>x.j.vul||x.j.hire==='hold');
   if(!list.length){alert('내보낼 취약근로자가 없어요.');return}
-  const rows=[[{v:'취약근로자 관리대장',s:4}],[{v:`현장: ${(window.SiteGeo?SiteGeo.Store.get().site_name:'')}    기준: 고령근로자 만 ${CF.old}세 이상 · 혈압 ${CF.hiS}/${CF.hiD} 이상 또는 ${CF.loS}/${CF.loD} 이하(재측정)    출력일: ${t}`,s:5}],
-    ['No','성명','나이(만)','협력사','공종','고용형태','투입일','투입종료일','혈압\n(최고/최저)','측정일','해당 사유','분류','채용 판정','고령 필수 서류\n(미비)','혈압 채용 조건\n(미비)','최근 기록일','비고']];
-  list.forEach(({w,j},i)=>rows.push([i+1,w.name,j.age??'',w.company,w.trade,w.emp,w.start,w.end,w.bpS||w.bpD?`${w.bpS}/${w.bpD}`:'',w.bpDate,{v:j.why.join('\n'),s:3},j.cls||'-',{v:j.hireTxt,s:3},{v:j.old?(j.oldMiss.join('\n')||'모두 제출'):'-',s:3},{v:j.bp?(j.bpMiss.join('\n')||'모두 충족'):'-',s:3},j.last,{v:w.note,s:3}]));
-  const lr=[[{v:'건강상담 기록',s:4}],['No','성명','상담일','혈압(최고/최저)','혈당(mg/dL)','복용약 확인','상담 내용']];let n=0;
-  list.forEach(({w})=>[...w.logs].sort((a,b)=>a.date<b.date?-1:1).forEach(l=>lr.push([++n,w.name,l.date,l.s||l.d?`${l.s}/${l.d}`:'',gfmt(l),l.med,{v:l.note,s:3}])));
-  makeXlsx([{name:'취약근로자 관리대장',widths:[4.5,8,6,14,9,8,10,10,9,10,24,8,22,26,26,10,18],rows,merges:['A1:Q1','A2:Q2'],hts:[30,20,34],freeze:3,titles:[3,3],def:ri=>ri<2?5:ri<3?2:1},
-    {name:'건강상담 기록',widths:[4.5,9,11,13,12,11,56],rows:lr,merges:['A1:G1'],hts:[30,22],freeze:2,titles:[2,2],def:ri=>ri<1?5:ri<2?2:1}],`취약근로자관리대장_${t}.xlsx`)};
+  const OX=v=>v?'O':'';
+  const rows=[[{v:'취약근로자 관리대장',s:4}],[{v:`현장: ${(window.SiteGeo?SiteGeo.Store.get().site_name:'')}    기준: 고령근로자 만 ${CF.old}세 이상 · 혈압 ${CF.hiS}/${CF.hiD} 이상 또는 ${CF.loS}/${CF.loD} 이하(재측정)    출력일: ${t}    ※ 고친 뒤 [엑셀 불러오기]로 올리면 반영돼요 (O 표시 = 제출·동의). 해당 사유·분류·채용 판정·최근 기록일은 자동 계산돼요.`,s:5}],
+    ['No','성명','생년월일','나이(만)','협력사','공종','고용형태','투입일','투입종료일','혈압\n(최고/최저)','측정일','혈압 재측정\n벗어남','해당 사유','분류','채용 판정','의사소견서\n(고령)','일반검진\n결과지','뇌심혈관\n위험평가','채용사유서','의사소견서\n(혈압)','혈압측정\n동의','건강관리\n동의','최근 기록일','비고','관리번호']];
+  list.forEach(({w,j},i)=>{const d=w.doc||{},c=w.bpc||{};rows.push([i+1,w.name,w.birth||'',j.age??'',w.company,w.trade,w.emp,w.start,w.end,w.bpS||w.bpD?`${w.bpS}/${w.bpD}`:'',w.bpDate,OX(w.bpRe),{v:j.why.join('\n'),s:3},j.cls||'-',{v:j.hireTxt,s:3},OX(d.op),OX(d.gen),OX(d.cv),OX(d.reason),OX(c.op),OX(c.meas),OX(c.agree),j.last,{v:w.note,s:3},w.id])});
+  const lr=[[{v:'건강상담 기록',s:4}],['No','성명','상담일','혈압(최고/최저)','혈당(mg/dL)','혈당 측정 시점','복용약 확인','상담 내용','관리번호']];let n=0;
+  list.forEach(({w})=>[...w.logs].sort((a,b)=>a.date<b.date?-1:1).forEach(l=>lr.push([++n,w.name,l.date,l.s||l.d?`${l.s}/${l.d}`:'',l.g||'',l.gt||'',l.med,{v:l.note,s:3},w.id])));
+  makeXlsx([{name:'취약근로자 관리대장',widths:[4.5,8,10,6,13,8,8,10,10,9,10,8,22,8,20,8,8,8,8,8,8,8,10,16,12],rows,merges:['A1:Y1','A2:Y2'],hts:[30,34,34],freeze:3,titles:[3,3],def:ri=>ri<2?5:ri<3?2:1},
+    {name:'건강상담 기록',widths:[4.5,9,11,13,11,11,11,50,12],rows:lr,merges:['A1:I1'],hts:[30,22],freeze:2,titles:[2,2],def:ri=>ri<1?5:ri<2?2:1}],`취약근로자관리대장_${t}.xlsx`)};
 
 /* ---------- 백업 ---------- */
 $('#bak').onclick=()=>dl(new Blob([JSON.stringify({app:'vuln-workers',v:1,workers:W,cfg:CF},null,1)],{type:'application/json'}),`취약근로자관리대장_백업_${KST()}.json`);
 $('#res').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());if(!Array.isArray(j.workers))throw 0;if(!confirm(`백업의 근로자 ${j.workers.length}명으로 바꿀까요? (지금 목록은 지워져요)`))return;W=j.workers;if(j.cfg)CF=Object.assign({},CF0,j.cfg);save();saveCf();fillCf();render()}catch(err){alert('백업 파일을 읽지 못했어요.')}e.target.value=''};
 
 /* ---------- 탭 ---------- */
-function tab(p){$$('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));$$('section.pane').forEach(s=>s.classList.toggle('on',s.id==='p-'+p));if(p==='list')render();if(p==='edit')fill();window.scrollTo(0,0)}
+function tab(p,force){if(!force&&p!=='edit'&&$('#p-edit').classList.contains('on')&&!leaveOk())return;$$('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));$$('section.pane').forEach(s=>s.classList.toggle('on',s.id==='p-'+p));if(p==='list')render();if(p==='edit')fill();window.scrollTo(0,0)}
 $$('.tabs button').forEach(b=>b.onclick=()=>tab(b.dataset.p));
 
 /* ---------- 고령 필수 서류 파일 (브라우저 IndexedDB 보관) ---------- */
@@ -654,7 +657,7 @@ const readURL=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>r
 async function shrink(f){const src=await readURL(f);return await new Promise(res=>{const im=new Image();im.onload=()=>{const m=1800,k=Math.min(1,m/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.82))};im.onerror=()=>res(src);im.src=src})}
 async function docUp(doc,files){if(!cur||!files.length)return;const w=cur,key=w.id+'_'+doc;const list=(await vGet(key))||[];
   for(const f of files){if(f.type==='application/pdf'||/\.pdf$/i.test(f.name))list.push({t:'pdf',name:f.name,src:await readURL(f),at:KST()});else list.push({t:'img',name:f.name,src:await shrink(f),at:KST()})}
-  await vPut(key,list);setK(w,'doc.'+doc,true);save();if(cur===w){fill()}render()}
+  await vPut(key,list);setK(w,'doc.'+doc,true);if(cur===w){setDirty();fill()}}
 async function docOpen(doc,i){const list=await vGet(cur.id+'_'+doc);const x=list&&list[i];if(!x)return;const b=await (await fetch(x.src)).blob();const u=URL.createObjectURL(b);const win=window.open(u,'_blank');if(!win){const a=document.createElement('a');a.href=u;a.download=x.name||'서류';a.click()}setTimeout(()=>URL.revokeObjectURL(u),60000)}
 async function docDel(doc,i){if(!confirm('이 파일을 지울까요?'))return;const key=cur.id+'_'+doc;const list=(await vGet(key))||[];list.splice(i,1);await vPut(key,list.length?list:null);docShow()}
 async function docShow(){if(!cur)return;const w=cur;for(const d of DOCS){const el=document.getElementById('df-'+d);if(!el)continue;const list=(await vGet(w.id+'_'+d))||[];if(cur!==w)return;
@@ -689,6 +692,68 @@ async function docPrintAll(){if(!cur)return;const all=await docList();if(!all.le
     m.querySelectorAll('[data-pi]').forEach(b=>b.onclick=()=>printPdf(pdfs[+b.dataset.pi]));
     return}
   printImgs(imgs)}
+
+/* ---------- 저장 / 취소 ---------- */
+let DIRTY=false;
+function setDirty(){DIRTY=true;const m=$('#dirtyMsg');if(m)m.textContent='저장하지 않은 내용이 있어요'}
+function setClean(){DIRTY=false;const m=$('#dirtyMsg');if(m)m.textContent=''}
+function discardDraft(){if(cur&&cur.__new)DOCS.forEach(d=>vPut(cur.id+'_'+d,null));setClean();cur=null}
+function leaveOk(){if(!DIRTY)return true;if(confirm('저장하지 않은 내용이 있어요.\n저장하지 않고 나갈까요? ([취소]를 누르면 계속 입력할 수 있어요)')){discardDraft();return true}return false}
+function saveW(){if(!cur)return;if(!String(cur.name||'').trim()){alert('성명을 입력하세요.');$('[data-k=name]').focus();return}
+  const c=JSON.parse(JSON.stringify(cur));delete c.__new;const i=W.findIndex(w=>w.id===c.id);if(i>=0)W[i]=c;else W.push(c);
+  save();setClean();cur=null;jCount();tab('list',true);toast(`${c.name} 저장했어요`)}
+function toast(t){let e=document.getElementById('toast');if(!e){e=document.createElement('div');e.id='toast';e.style.cssText='position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:10px;font-size:14.5px;font-weight:600;z-index:80;box-shadow:0 6px 20px rgba(0,0,0,.2)';document.body.appendChild(e)}
+  e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2200)}
+window.addEventListener('beforeunload',e=>{if(DIRTY){e.preventDefault();e.returnValue=''}});
+
+/* ---------- 엑셀 불러오기 (내보낸 엑셀을 고치거나 줄을 추가해서 올리기) ---------- */
+const colIdx=ref=>{let n=0;for(const ch of ref.replace(/\d+/g,''))n=n*26+(ch.charCodeAt(0)-64);return n-1};
+async function readXlsx(file){const z=await JSZip.loadAsync(file);const P=x=>new DOMParser().parseFromString(x,'application/xml');
+  const ss=[];const sx=z.file('xl/sharedStrings.xml');if(sx){const d=P(await sx.async('string'));[...d.getElementsByTagName('si')].forEach(si=>ss.push([...si.getElementsByTagName('t')].map(t=>t.textContent).join('')))}
+  const wb=P(await z.file('xl/workbook.xml').async('string')),rels=P(await z.file('xl/_rels/workbook.xml.rels').async('string'));
+  const rm={};[...rels.getElementsByTagName('Relationship')].forEach(r=>rm[r.getAttribute('Id')]=r.getAttribute('Target'));
+  const out=[];for(const sh of [...wb.getElementsByTagName('sheet')]){const id=sh.getAttribute('r:id')||sh.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
+    let tg=(rm[id]||'').replace(/^\/?xl\//,'').replace(/^\//,'');const f=z.file('xl/'+tg);if(!f)continue;const d=P(await f.async('string'));const rows=[];
+    [...d.getElementsByTagName('row')].forEach(r=>{const ri=+r.getAttribute('r')-1;const arr=[];[...r.getElementsByTagName('c')].forEach(c=>{const tp=c.getAttribute('t');const vv=c.getElementsByTagName('v')[0];let v='';
+      if(tp==='s')v=ss[+(vv?vv.textContent:0)]??'';else if(tp==='inlineStr')v=[...c.getElementsByTagName('t')].map(t=>t.textContent).join('');else{v=vv?vv.textContent:'';if(tp!=='str'&&v!==''&&!isNaN(+v))v=+v}
+      arr[colIdx(c.getAttribute('r'))]=v});rows[ri]=arr});
+    out.push({name:sh.getAttribute('name'),rows})}
+  return out}
+const xD=v=>{if(v===''||v==null)return '';if(typeof v==='number'){const d=new Date(Math.round((v-25569)*864e5));return d.toISOString().slice(0,10)}
+  const m=String(v).trim().match(/^(\d{4})\s*[.\-\/년]\s*(\d{1,2})\s*[.\-\/월]\s*(\d{1,2})/);return m?`${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`:String(v).trim()};
+const xB=v=>/^(o|○|◯|●|v|✔|✓|y|yes|예|제출|동의|완료|있음|1|true)$/i.test(String(v??'').trim());
+const xS=v=>v==null?'':String(v).trim();
+const HMAP={'성명':'name','생년월일':'birth','나이(만)':'age','협력사':'company','공종':'trade','고용형태':'emp','투입일':'start','투입종료일':'end','혈압(최고/최저)':'bp','측정일':'bpDate','혈압재측정벗어남':'bpRe','의사소견서(고령)':'doc.op','일반검진결과지':'doc.gen','뇌심혈관위험평가':'doc.cv','채용사유서':'doc.reason','의사소견서(혈압)':'bpc.op','혈압측정동의':'bpc.meas','건강관리동의':'bpc.agree','비고':'note','관리번호':'id'};
+const LMAP={'성명':'name','상담일':'date','혈압(최고/최저)':'bp','혈당(mg/dL)':'g','혈당측정시점':'gt','복용약확인':'med','상담내용':'note','관리번호':'id'};
+function tableOf(rows,map){const hi=rows.findIndex(r=>r&&r.some(c=>String(c??'').replace(/\s/g,'')==='성명'));if(hi<0)return null;
+  const cols={};rows[hi].forEach((c,i)=>{const k=map[String(c??'').replace(/\s/g,'')];if(k)cols[k]=i});
+  const data=rows.slice(hi+1).filter(r=>r&&xS(r[cols.name])).map(r=>{const o={};for(const[k,i]of Object.entries(cols))o[k]=r[i];return o});return {cols,data}}
+$('#xlsxIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;if(!leaveOk())return;
+  let sheets;try{sheets=await readXlsx(f)}catch(err){console.error(err);alert('엑셀 파일을 읽지 못했어요. [엑셀 내보내기]로 받은 .xlsx 파일인지 확인하세요.');return}
+  let TW=null,TL=null;for(const sh of sheets){const flat=(sh.rows.find(r=>r&&r.some(c=>String(c??'').replace(/\s/g,'')==='성명'))||[]).map(c=>String(c??'').replace(/\s/g,''));
+    if(!TW&&(flat.includes('투입일')||flat.includes('생년월일')||flat.includes('협력사')))TW=tableOf(sh.rows,HMAP);else if(!TL&&flat.includes('상담일'))TL=tableOf(sh.rows,LMAP)}
+  if(!TW&&!TL){alert('관리대장 표를 찾지 못했어요. 머리줄(성명·투입일 등)은 지우지 말고 그대로 두세요.');return}
+  const NW=JSON.parse(JSON.stringify(W));let add=0,upd=0,lg=0;const touched=new Set();
+  const findW=(id,name,birth)=>{if(id){const x=NW.find(w=>w.id===xS(id));if(x)return x}const nm=xS(name);if(!nm)return null;const b=xD(birth);if(b){const x=NW.find(w=>w.name===nm&&w.birth===b);if(x)return x}const L=NW.filter(w=>w.name===nm);return L.length===1?L[0]:null};
+  for(const r of (TW?TW.data:[])){let w=findW(r.id,r.name,r.birth);const isNew=!w;if(isNew){w=blank();w.start='';NW.push(w)}
+    w.doc=w.doc||{};w.bpc=w.bpc||{};
+    for(const k of Object.keys(TW.cols)){const v=r[k];
+      if(k==='id')continue;
+      else if(k==='bp'){const m=xS(v).match(/(\d+)\s*\/\s*(\d+)/);if(m){w.bpS=m[1];w.bpD=m[2]}else if(!xS(v)){w.bpS='';w.bpD=''}}
+      else if(['birth','start','end','bpDate'].includes(k))w[k]=xD(v);
+      else if(k==='age'){if(!xD(r.birth))w.age=xS(v)}
+      else if(k==='bpRe')w.bpRe=xB(v);
+      else if(k.startsWith('doc.')||k.startsWith('bpc.'))setK(w,k,xB(v));
+      else w[k]=xS(v)}
+    if(isNew)add++;else upd++;touched.add(w.id)}
+  for(const r of (TL?TL.data:[])){const w=findW(r.id,r.name,'');if(!w)continue;const m=xS(r.bp).match(/(\d+)\s*\/\s*(\d+)/);
+    const l={id:uid(),date:xD(r.date)||KST(),s:m?m[1]:'',d:m?m[2]:'',g:xS(r.g).replace(/[^\d.]/g,''),gt:xS(r.gt),med:xS(r.med),note:xS(r.note)};
+    if(!l.s&&!l.d&&!l.g&&!l.note&&!l.med)continue;w.logs=w.logs||[];
+    if(w.logs.some(x=>x.date===l.date&&String(x.s)===l.s&&String(x.d)===l.d&&(x.note||'')===l.note))continue;
+    w.logs.push(l);lg++;if(l.s&&l.d&&(!w.bpDate||l.date>=w.bpDate)){w.bpS=l.s;w.bpD=l.d;w.bpDate=l.date}}
+  if(!add&&!upd&&!lg){alert('반영할 내용이 없어요.');return}
+  if(!confirm(`엑셀 내용을 반영할까요?\n\n· 새 근로자 ${add}명 추가\n· 기존 근로자 ${upd}명 갱신\n· 건강상담 기록 ${lg}건 추가\n\n엑셀에 없는 근로자는 그대로 둬요.`))return;
+  W=NW;save();cur=null;setClean();render();jCount();toast(`엑셀 반영 완료 · 추가 ${add} · 갱신 ${upd} · 기록 ${lg}`)};
 fillCf();render();jCount();
 
 function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
