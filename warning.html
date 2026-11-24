@@ -3,6 +3,120 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>관리요령 · 경고표지</title>
 <meta name="google" content="notranslate">
+<script>/* 현장 위치 공유 + 주소 검색 + 지도 확인 (보건일지 · 현장 기상 모니터 공용) */
+(function () {
+  const DEF = { site_name: '평택동부고속화도로 민간투자사업 1공구', place: '경기도 평택시 (평택동부고속화도로 구간)', lat: 37.04, lon: 127.08 };
+  const rd = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  const wr = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const Store = {
+    DEF,
+    get() {
+      const s = rd('hl_site') || (rd('hl_health_store') || {}).site || {};
+      return { ...DEF, ...s };
+    },
+    set(s) { const v = { ...Store.get(), ...s }; v.lat = +(+v.lat).toFixed(5); v.lon = +(+v.lon).toFixed(5); wr('hl_site', v); return v; },
+  };
+  const tidy = dn => dn.split(',').map(x => x.trim()).filter(x => x && x !== '대한민국' && !/^\d{5}$/.test(x)).reverse().join(' ');
+  async function getJ(u, tries) {
+    let err;
+    for (let i = 0; i < (tries || 2); i++) {
+      try { const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 9000); const r = await fetch(u, { signal: ctl.signal, headers: { 'Accept': 'application/json' } }); clearTimeout(t); if (!r.ok) throw new Error('HTTP ' + r.status); return await r.json(); }
+      catch (e) { err = e; await new Promise(r => setTimeout(r, 700)); }
+    }
+    throw err;
+  }
+  async function search(q) {
+    const out = [];
+    try {
+      const js = await getJ('https://nominatim.openstreetmap.org/search?' + new URLSearchParams({ q, format: 'jsonv2', countrycodes: 'kr', 'accept-language': 'ko', limit: 8 }));
+      for (const r of js || []) out.push({ label: tidy(r.display_name || ''), name: r.name || '', lat: +r.lat, lon: +r.lon });
+    } catch (e) {}
+    if (!out.length) {
+      for (const name of [...new Set([q, q.replace(/(시|군|구|읍|면|동)$/, ''), q.split(/\s+/).pop()])].filter(Boolean)) {
+        try {
+          const js = await getJ('https://geocoding-api.open-meteo.com/v1/search?' + new URLSearchParams({ name, count: 8, language: 'ko', format: 'json' }));
+          for (const r of (js.results || []).filter(r => r.country_code === 'KR')) out.push({ label: [r.admin1, r.admin2, r.name].filter(Boolean).join(' '), name: r.name, lat: r.latitude, lon: r.longitude });
+        } catch (e) {}
+        if (out.length) break;
+      }
+    }
+    const seen = new Set();
+    return out.filter(r => { const k = r.label + r.lat.toFixed(3); if (seen.has(k)) return false; seen.add(k); return true; });
+  }
+  const mapUrl = (lat, lon, z) => { const d = z || 0.006; return 'https://www.openstreetmap.org/export/embed.html?' + new URLSearchParams({ bbox: [lon - d * 1.6, lat - d, lon + d * 1.6, lat + d].join(','), layer: 'mapnik', marker: lat + ',' + lon }); };
+  const bigMap = (lat, lon) => `https://map.kakao.com/link/map/현장,${lat},${lon}`;
+  const CSS = `.sg{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.sg .sgrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sg input{font:inherit;font-size:15px;padding:9px 11px;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#111827;flex:1;min-width:200px}
+.sg input:focus{outline:2px solid #0a6f94;border-color:#0a6f94}
+.sg button{font:inherit;font-size:14px;font-weight:700;padding:9px 16px;border-radius:8px;border:1px solid #111827;background:#fff;color:#111827;cursor:pointer;min-height:40px}
+.sg button.pri{background:#111827;color:#fff}
+.sg button:disabled{opacity:.45;cursor:default}
+.sg .sglist{display:flex;flex-direction:column;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}
+.sg .sglist button{border:0;border-bottom:1px solid #f0f1f3;border-radius:0;text-align:left;font-weight:500;padding:10px 12px;min-height:44px}
+.sg .sglist button:last-child{border-bottom:0}
+.sg .sglist button:hover,.sg .sglist button.on{background:#e6f4f9;color:#0a4f6a}
+.sg .sgmap{width:100%;height:280px;border:1px solid #e5e7eb;border-radius:8px;background:#f8fafb}
+.sg .sgmsg{font-size:13.5px;color:#4b5563;margin:0}
+.sg .sgmsg b{color:#111827}
+.sg .sgwarn{font-size:13.5px;background:#fff5e6;border:1px solid #f0d3a2;color:#7a4b00;border-radius:8px;padding:8px 12px}
+.sg .sgok{font-size:13.5px;background:#e9f6ee;border:1px solid #bfe3cc;color:#155d2f;border-radius:8px;padding:8px 12px}
+.sg a{color:#0a6f94}
+.sg [hidden]{display:none!important}`;
+  function mount(host, opts) {
+    if (!document.getElementById('sg-css')) { const st = document.createElement('style'); st.id = 'sg-css'; st.textContent = CSS; document.head.appendChild(st); }
+    const cur = opts.current();
+    host.innerHTML = `<div class="sg">
+  <div class="sgrow"><input class="sgq" placeholder="현장 주소나 건물·동 이름 (예: 전주시 완산구 삼천동, 평택시 청북읍)" aria-label="현장 주소 검색"><button type="button" class="sgbtn pri">주소 검색</button></div>
+  <div class="sglist" hidden></div>
+  <p class="sgmsg"></p>
+  <iframe class="sgmap" title="현장 위치 지도" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+  <div class="sgrow"><button type="button" class="sgsave pri" disabled>이 위치로 저장</button><a class="sgbig" target="_blank" rel="noopener">큰 지도에서 보기</a></div>
+  <details><summary style="cursor:pointer;font-size:13.5px">좌표 직접 넣기 (네이버·카카오 지도에서 복사)</summary>
+    <div class="sgrow" style="margin-top:8px"><input class="sgxy" placeholder="위도, 경도 (예: 37.0412, 127.0835)" aria-label="좌표"><button type="button" class="sgxybtn">지도에 표시</button></div></details>
+</div>`;
+    if (opts.noXY) host.querySelector('.sg details').remove();
+    const q = host.querySelector('.sgq'), list = host.querySelector('.sglist'), msg = host.querySelector('.sgmsg'), map = host.querySelector('.sgmap'), save = host.querySelector('.sgsave'), big = host.querySelector('.sgbig');
+    let pick = null;
+    const show = (lat, lon, label, saved) => {
+      map.src = mapUrl(lat, lon); big.href = bigMap(lat, lon);
+      msg.innerHTML = (saved ? '지금 저장된 위치: ' : '선택한 위치: ') + `<b>${esc(label)}</b> · 위도 ${(+lat).toFixed(4)}, 경도 ${(+lon).toFixed(4)}` + (saved ? '' : ' — 지도의 빨간 표시가 현장이 맞는지 확인한 뒤 저장하세요.');
+    };
+    show(cur.lat, cur.lon, cur.place, true);
+    const go = async () => {
+      const v = q.value.trim(); if (!v) return;
+      list.hidden = false; list.innerHTML = '<p class="sgmsg" style="padding:10px 12px">찾는 중…</p>';
+      const res = await search(v);
+      if (!res.length) { list.innerHTML = '<div class="sgwarn">찾지 못했어요. 번지 대신 동·읍·면 이름이나 큰 건물·학교 이름으로 검색하거나, 아래 "좌표 직접 넣기"를 써 보세요.</div>'; return; }
+      list.innerHTML = res.map((r, i) => `<button type="button" data-i="${i}">${esc(r.label)}</button>`).join('');
+      list.onclick = e => {
+        const b = e.target.closest('[data-i]'); if (!b) return;
+        list.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+        pick = res[+b.dataset.i]; show(pick.lat, pick.lon, pick.label); save.disabled = false;
+      };
+    };
+    host.querySelector('.sgbtn').onclick = go;
+    q.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); go(); } };
+    const xyb = host.querySelector('.sgxybtn'); if (xyb) xyb.onclick = () => {
+      const m = host.querySelector('.sgxy').value.match(/(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)/);
+      if (!m) { msg.innerHTML = '<span class="sgwarn" style="display:inline-block">"37.0412, 127.0835"처럼 위도, 경도 순서로 넣어 주세요.</span>'; return; }
+      let a = +m[1], b = +m[2]; if (a > 100) [a, b] = [b, a];
+      if (a < 33 || a > 39 || b < 124 || b > 132) { msg.innerHTML = '<span class="sgwarn" style="display:inline-block">국내 좌표가 아니에요. 다시 확인해 주세요.</span>'; return; }
+      pick = { lat: a, lon: b, label: `좌표 ${a.toFixed(4)}, ${b.toFixed(4)}` }; show(a, b, pick.label); save.disabled = false;
+    };
+    save.onclick = () => {
+      if (!pick) return;
+      const v = Store.set({ place: pick.label, lat: pick.lat, lon: pick.lon });
+      save.disabled = true; list.hidden = true;
+      show(v.lat, v.lon, v.place, true);
+      msg.insertAdjacentHTML('beforeend', '<div class="sgok" style="margin-top:6px">저장했어요. 보건일지와 현장 기상 모니터에 같이 적용됩니다.</div>');
+      opts.onSave && opts.onSave(v);
+    };
+  }
+  window.SiteGeo = { Store, search, mount, mapUrl };
+})();
+</script>
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzBhNmY5NCIvPjxwYXRoIGQ9Ik01IDE3aDZsMy03IDUgMTMgMy02aDUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIyLjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Montserrat:wght@500&display=swap" rel="stylesheet">
@@ -886,7 +1000,7 @@ const LS = (k, v) => { try { if (v === undefined) return JSON.parse(localStorage
 const D = new C.Dictionary(JSON.parse(document.getElementById('dictjson').textContent), LS('label_user_dict') || undefined);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = id => document.getElementById(id);
-const site = $('site'); site.value = LS('label_site') || ''; site.oninput = () => { LS('label_site', site.value); if (A) keepScroll(render); };
+const site = $('site'); { const _sv = LS('label_site'); site.value = (_sv && _sv !== '전주 오성대우 주택재건축 정비사업') ? _sv : (window.SiteGeo ? SiteGeo.Store.get().site_name : '평택동부고속화도로 민간투자사업 1공구'); } site.oninput = () => { LS('label_site', site.value); if (A) keepScroll(render); };
 let LANGS = LS('label_langs') || ['en'], allowPartial = false;
 function renderLangs() {
   $('langs').innerHTML = C.FOREIGN.map(k => `<label class="${LANGS.includes(k) ? 'on' : ''}" title="신뢰도: ${esc(D.meta.reliability[k] || '')}"><input type="checkbox" data-lang="${k}" ${LANGS.includes(k) ? 'checked' : ''}>${C.LANG_NAMES[k]}</label>`).join('');
