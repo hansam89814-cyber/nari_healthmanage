@@ -258,6 +258,7 @@ table.led{min-width:1020px}
 .reqdoc .apt{width:auto!important;flex:none}.reqdoc .apt td{width:78px!important}
 
 .col{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.reqdoc table.f.jt td,.reqdoc table.f.jt th{text-align:center;vertical-align:middle}
 .req-ok{color:#1f6b45}.req-no{color:#a3261a}
 
 /* 새 사이트 모양 (시안 1) */
@@ -591,9 +592,9 @@ $('#jPrint').onclick=()=>{const R=jRows();if(!R.length){alert('이 기간에 상
   const gl=g=>g==='취약'?'일반 취약':g==='직업성'?'직업성질환':g==='해당없음'?'-':'고위험';
   const per=40,pages=[];for(let i=0;i<R.length;i+=per)pages.push(R.slice(i,i+per));
   $('#reqDoc').innerHTML=pages.map((P,pi)=>`<div class="jpage"><div class="jhd"><div><h1 style="text-align:left">건강상담일지</h1><div style="font-size:9.5pt">현장: ${(window.SiteGeo?SiteGeo.Store.get().site_name:'')} · 기간: ${$('#jFrom').value} ~ ${$('#jTo').value}${pages.length>1?` · ${pi+1}/${pages.length}쪽`:''}</div></div>
-     <table class="apt"><tr><td>담 당</td><td>안전보건책임자</td><td>현장소장</td></tr><tr><td></td><td></td><td></td></tr></table></div>
+     <table class="apt"><tr><td>담 당</td><td>현장소장</td></tr><tr><td></td><td></td></tr></table></div>
     <table class="f jt"><tr><th style="width:5%">No</th><th style="width:11%">상담일</th><th style="width:8%">성명</th><th style="width:5%">나이</th><th style="width:12%">협력사·공종</th><th style="width:8%">분류</th><th style="width:8%">혈압</th><th style="width:8%">혈당<br>(mg/dL)</th><th style="width:8%">복용약</th><th>상담 내용</th><th style="width:8%">근로자<br>확인</th></tr>
-    ${P.map((x,i)=>`<tr><td style="text-align:center">${pi*per+i+1}</td><td>${x.l.date}</td><td>${esc(x.w.name)}</td><td style="text-align:center">${x.j.age??''}</td><td>${esc(x.w.company)}${x.w.trade?`<br>${esc(x.w.trade)}`:''}</td><td>${x.j.cls||'-'}</td><td style="text-align:center">${x.l.s||x.l.d?(bpHiL(x.l)?red:v=>v)(`${esc(x.l.s)}/${esc(x.l.d)}`):''}</td><td style="text-align:center">${(gHi(x.l)?red:v=>v)(esc(x.l.g||''))}${x.l.gt?`<br>${esc(x.l.gt)}`:''}</td><td>${esc(x.l.med)}</td><td>${esc(x.l.note)}</td><td></td></tr>`).join('')}</table>
+    ${P.map((x,i)=>`<tr><td style="text-align:center">${pi*per+i+1}</td><td>${x.l.date}</td><td>${esc(x.w.name)}</td><td style="text-align:center">${x.j.age??''}</td><td>${esc(x.w.company)}${x.w.trade?`<br>${esc(x.w.trade)}`:''}</td><td>${x.j.cls||'-'}</td><td style="text-align:center">${x.l.s||x.l.d?(bpHiL(x.l)?red:v=>v)(`${esc(x.l.s)}/${esc(x.l.d)}`):''}</td><td style="text-align:center">${(gHi(x.l)?red:v=>v)(esc(x.l.g||''))}${x.l.gt?`<br>${esc(x.l.gt)}`:''}</td><td>${esc(x.l.med)}</td><td>${esc(x.l.note)}</td><td style="text-align:right;vertical-align:bottom;font-size:8pt;color:#555">(서명)</td></tr>`).join('')}</table>
 </div>`).join('');
   document.body.classList.add('req');pageSize('portrait');setTimeout(()=>window.print(),50)};
 function pageSize(o){let s=document.getElementById('pgsz');if(!s){s=document.createElement('style');s.id='pgsz';document.head.appendChild(s)}s.textContent=`@page{size:A4 ${o};margin:${o==='portrait'?'14mm 16mm':'10mm'}}`}

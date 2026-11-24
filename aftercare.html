@@ -730,7 +730,7 @@ function page3(w){const ph=w.photos,cls=ph.length===1?'one':ph.length===2?'two':
  <tr><th>대상자</th><td>${esc(w.name)}</td><th>부서</th><td>${esc(w.dept)}</td><th>판정</th><td>${worst(w)} ${GRADE[worst(w)]?'('+GRADE[worst(w)]+')':''}</td></tr></table>
  <div class="sec">상담 사진</div><div class="pgrid ${cls}">${boxes}</div>
  <div class="sec">상담 내용 및 조치</div><div class="notebox">${esc(w.consultNote)}</div>
- <table style="margin-top:8px"><tr><th style="width:18%">근로자 확인</th><td style="height:12mm">(서명)</td><th style="width:18%">상담자 확인</th><td>(서명)</td></tr></table>
+ <table style="margin-top:8px"><tr><th style="width:18%">근로자 확인</th><td style="height:12mm;text-align:right;padding-right:5mm">(서명)</td><th style="width:18%">상담자 확인</th><td style="text-align:right;padding-right:5mm">(서명)</td></tr></table>
  ${foot(3)}</div>`}
 
 function renderPages(){const w=W();const sc=document.getElementById('scaler');const t=sc.style.transform;sc.style.transform='none';document.getElementById('pages').innerHTML=w?page1(w)+page2(w)+page3(w)+scanPages(w):'';fitPage2();sc.style.transform=t;fit()}
