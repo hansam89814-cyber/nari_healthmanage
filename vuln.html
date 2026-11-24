@@ -390,7 +390,7 @@ input.cf,td select,td input[type=number]{border:1px solid #d1d5db}
       </div>
     </div>
     <div class="card">
-      <h2>혈압 <small>처음 측정에서 벗어나면 재측정한 값으로 판정해요</small></h2>
+      <h2>채용 시 혈압 <small>판정 기준 · 처음 측정에서 벗어나면 재측정한 값을 넣어요</small></h2>
       <div class="grid">
         <label class="f">수축기 혈압(최고)<input data-k="bpS" type="number"></label>
         <label class="f">이완기 혈압(최저)<input data-k="bpD" type="number"></label>
@@ -429,7 +429,7 @@ input.cf,td select,td input[type=number]{border:1px solid #d1d5db}
         <label class="f">복용약 확인<select id="lgMed"><option value="">-</option><option>복용 확인</option><option>미복용</option><option>복용약 없음</option></select></label>
       </div>
       <label class="f" style="margin-top:8px">상담 내용<input id="lgNote" placeholder="예) 컨디션 양호, 2인1조 작업 확인, 보호구 착용 교육"></label>
-      <div class="row" style="margin-top:8px"><button class="btn" id="lgAdd" type="button">상담 기록 추가</button><span class="muted">측정 혈압은 대장의 혈압 칸에도 반영돼요. 기준을 벗어난 혈압, 혈당(공복 126 이상·식후 200 이상)은 빨간색으로 표시돼요.</span></div>
+      <div class="row" style="margin-top:8px"><button class="btn" id="lgAdd" type="button">상담 기록 추가</button><span class="muted">여기 기록은 위의 채용 시 혈압을 바꾸지 않아요. 기준을 벗어난 혈압, 혈당(공복 126 이상·식후 200 이상)은 빨간색으로 표시돼요.</span></div>
       <div id="logs" style="margin-top:10px"></div>
     </div>
     <div class="card">
@@ -579,7 +579,6 @@ $$('#form [data-k]').forEach(el=>{const h=()=>{if(!cur)return;let v=el.type==='c
 $('#lgAdd').onclick=()=>{if(!cur)return;const d=$('#lgDate').value||KST(),s=$('#lgS').value.trim(),dd=$('#lgD').value.trim();
   const gl=$('#lgG').value.trim();if(!s&&!dd&&!gl&&!$('#lgNote').value.trim()&&!$('#lgMed').value){alert('혈압·혈당이나 상담 내용을 입력하세요.');return}
   cur.logs.push({id:uid(),date:d,s,d:dd,g:gl,gt:gl?$('#lgGt').value:'',med:$('#lgMed').value,note:$('#lgNote').value.trim()});
-  if(s&&dd&&(!cur.bpDate||d>=cur.bpDate)){cur.bpS=s;cur.bpD=dd;cur.bpDate=d}
   setDirty();fill()};
 $('#add').onclick=()=>{if(!leaveOk())return;cur=blank();cur.__new=true;setClean();tab('edit',true);fill();setTimeout(()=>$('[data-k=name]').focus(),50)};
 $('#del').onclick=()=>{if(!cur)return;if(cur.__new){if(!confirm('입력하던 근로자를 저장하지 않고 지울까요?'))return}else if(!confirm(`${cur.name||'이 근로자'}를 관리대장에서 지울까요?`))return;
@@ -750,7 +749,7 @@ $('#xlsxIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!
     const l={id:uid(),date:xD(r.date)||KST(),s:m?m[1]:'',d:m?m[2]:'',g:xS(r.g).replace(/[^\d.]/g,''),gt:xS(r.gt),med:xS(r.med),note:xS(r.note)};
     if(!l.s&&!l.d&&!l.g&&!l.note&&!l.med)continue;w.logs=w.logs||[];
     if(w.logs.some(x=>x.date===l.date&&String(x.s)===l.s&&String(x.d)===l.d&&(x.note||'')===l.note))continue;
-    w.logs.push(l);lg++;if(l.s&&l.d&&(!w.bpDate||l.date>=w.bpDate)){w.bpS=l.s;w.bpD=l.d;w.bpDate=l.date}}
+    w.logs.push(l);lg++}
   if(!add&&!upd&&!lg){alert('반영할 내용이 없어요.');return}
   if(!confirm(`엑셀 내용을 반영할까요?\n\n· 새 근로자 ${add}명 추가\n· 기존 근로자 ${upd}명 갱신\n· 건강상담 기록 ${lg}건 추가\n\n엑셀에 없는 근로자는 그대로 둬요.`))return;
   W=NW;save();cur=null;setClean();render();jCount();toast(`엑셀 반영 완료 · 추가 ${add} · 갱신 ${upd} · 기록 ${lg}`)};
