@@ -76,8 +76,121 @@ summary{cursor:pointer;font-weight:600;font-size:14px}
 .ms .list div:hover,.ms .list div.act{background:#e6f4f9}
 @media(max-width:760px){.grid,.grid3{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.frame{height:820px}.tblwrap{overflow-x:auto}.tbl{min-width:760px}}
 
-</style></head><body>
-<header class="hd"><div class="in"><a class="brand" href="index.html">보건관리 페이지</a><nav aria-label="메뉴"><a href="warning.html">관리요령 · 경고표지</a><a href="edu.html">MSDS 교육일지</a><a href="health.html" class="on" aria-current="page">보건일지</a></nav></div></header><div class="ptitle"><h1>보건일지</h1><p>날씨·혈압·업무를 기록하고 인쇄</p></div>
+</style><script>/* 현장 위치 공유 + 주소 검색 + 지도 확인 (보건일지 · 현장 기상 모니터 공용) */
+(function () {
+  const DEF = { site_name: '평택동부고속화도로 민간투자사업 1공구', place: '경기도 평택시 (평택동부고속화도로 구간)', lat: 37.04, lon: 127.08 };
+  const rd = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  const wr = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const Store = {
+    DEF,
+    get() {
+      const s = rd('hl_site') || (rd('hl_health_store') || {}).site || {};
+      return { ...DEF, ...s };
+    },
+    set(s) { const v = { ...Store.get(), ...s }; v.lat = +(+v.lat).toFixed(5); v.lon = +(+v.lon).toFixed(5); wr('hl_site', v); return v; },
+  };
+  const tidy = dn => dn.split(',').map(x => x.trim()).filter(x => x && x !== '대한민국' && !/^\d{5}$/.test(x)).reverse().join(' ');
+  async function getJ(u, tries) {
+    let err;
+    for (let i = 0; i < (tries || 2); i++) {
+      try { const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 9000); const r = await fetch(u, { signal: ctl.signal, headers: { 'Accept': 'application/json' } }); clearTimeout(t); if (!r.ok) throw new Error('HTTP ' + r.status); return await r.json(); }
+      catch (e) { err = e; await new Promise(r => setTimeout(r, 700)); }
+    }
+    throw err;
+  }
+  async function search(q) {
+    const out = [];
+    try {
+      const js = await getJ('https://nominatim.openstreetmap.org/search?' + new URLSearchParams({ q, format: 'jsonv2', countrycodes: 'kr', 'accept-language': 'ko', limit: 8 }));
+      for (const r of js || []) out.push({ label: tidy(r.display_name || ''), name: r.name || '', lat: +r.lat, lon: +r.lon });
+    } catch (e) {}
+    if (!out.length) {
+      for (const name of [...new Set([q, q.replace(/(시|군|구|읍|면|동)$/, ''), q.split(/\s+/).pop()])].filter(Boolean)) {
+        try {
+          const js = await getJ('https://geocoding-api.open-meteo.com/v1/search?' + new URLSearchParams({ name, count: 8, language: 'ko', format: 'json' }));
+          for (const r of (js.results || []).filter(r => r.country_code === 'KR')) out.push({ label: [r.admin1, r.admin2, r.name].filter(Boolean).join(' '), name: r.name, lat: r.latitude, lon: r.longitude });
+        } catch (e) {}
+        if (out.length) break;
+      }
+    }
+    const seen = new Set();
+    return out.filter(r => { const k = r.label + r.lat.toFixed(3); if (seen.has(k)) return false; seen.add(k); return true; });
+  }
+  const mapUrl = (lat, lon, z) => { const d = z || 0.006; return 'https://www.openstreetmap.org/export/embed.html?' + new URLSearchParams({ bbox: [lon - d * 1.6, lat - d, lon + d * 1.6, lat + d].join(','), layer: 'mapnik', marker: lat + ',' + lon }); };
+  const bigMap = (lat, lon) => `https://map.kakao.com/link/map/현장,${lat},${lon}`;
+  const CSS = `.sg{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.sg .sgrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sg input{font:inherit;font-size:15px;padding:9px 11px;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#111827;flex:1;min-width:200px}
+.sg input:focus{outline:2px solid #0a6f94;border-color:#0a6f94}
+.sg button{font:inherit;font-size:14px;font-weight:700;padding:9px 16px;border-radius:8px;border:1px solid #111827;background:#fff;color:#111827;cursor:pointer;min-height:40px}
+.sg button.pri{background:#111827;color:#fff}
+.sg button:disabled{opacity:.45;cursor:default}
+.sg .sglist{display:flex;flex-direction:column;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}
+.sg .sglist button{border:0;border-bottom:1px solid #f0f1f3;border-radius:0;text-align:left;font-weight:500;padding:10px 12px;min-height:44px}
+.sg .sglist button:last-child{border-bottom:0}
+.sg .sglist button:hover,.sg .sglist button.on{background:#e6f4f9;color:#0a4f6a}
+.sg .sgmap{width:100%;height:280px;border:1px solid #e5e7eb;border-radius:8px;background:#f8fafb}
+.sg .sgmsg{font-size:13.5px;color:#4b5563;margin:0}
+.sg .sgmsg b{color:#111827}
+.sg .sgwarn{font-size:13.5px;background:#fff5e6;border:1px solid #f0d3a2;color:#7a4b00;border-radius:8px;padding:8px 12px}
+.sg .sgok{font-size:13.5px;background:#e9f6ee;border:1px solid #bfe3cc;color:#155d2f;border-radius:8px;padding:8px 12px}
+.sg a{color:#0a6f94}
+.sg [hidden]{display:none!important}`;
+  function mount(host, opts) {
+    if (!document.getElementById('sg-css')) { const st = document.createElement('style'); st.id = 'sg-css'; st.textContent = CSS; document.head.appendChild(st); }
+    const cur = opts.current();
+    host.innerHTML = `<div class="sg">
+  <div class="sgrow"><input class="sgq" placeholder="현장 주소나 건물·동 이름 (예: 전주시 완산구 삼천동, 평택시 청북읍)" aria-label="현장 주소 검색"><button type="button" class="sgbtn pri">주소 검색</button></div>
+  <div class="sglist" hidden></div>
+  <p class="sgmsg"></p>
+  <iframe class="sgmap" title="현장 위치 지도" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+  <div class="sgrow"><button type="button" class="sgsave pri" disabled>이 위치로 저장</button><a class="sgbig" target="_blank" rel="noopener">큰 지도에서 보기</a></div>
+  <details><summary style="cursor:pointer;font-size:13.5px">좌표 직접 넣기 (네이버·카카오 지도에서 복사)</summary>
+    <div class="sgrow" style="margin-top:8px"><input class="sgxy" placeholder="위도, 경도 (예: 37.0412, 127.0835)" aria-label="좌표"><button type="button" class="sgxybtn">지도에 표시</button></div></details>
+</div>`;
+    if (opts.noXY) host.querySelector('.sg details').remove();
+    const q = host.querySelector('.sgq'), list = host.querySelector('.sglist'), msg = host.querySelector('.sgmsg'), map = host.querySelector('.sgmap'), save = host.querySelector('.sgsave'), big = host.querySelector('.sgbig');
+    let pick = null;
+    const show = (lat, lon, label, saved) => {
+      map.src = mapUrl(lat, lon); big.href = bigMap(lat, lon);
+      msg.innerHTML = (saved ? '지금 저장된 위치: ' : '선택한 위치: ') + `<b>${esc(label)}</b> · 위도 ${(+lat).toFixed(4)}, 경도 ${(+lon).toFixed(4)}` + (saved ? '' : ' — 지도의 빨간 표시가 현장이 맞는지 확인한 뒤 저장하세요.');
+    };
+    show(cur.lat, cur.lon, cur.place, true);
+    const go = async () => {
+      const v = q.value.trim(); if (!v) return;
+      list.hidden = false; list.innerHTML = '<p class="sgmsg" style="padding:10px 12px">찾는 중…</p>';
+      const res = await search(v);
+      if (!res.length) { list.innerHTML = '<div class="sgwarn">찾지 못했어요. 번지 대신 동·읍·면 이름이나 큰 건물·학교 이름으로 검색하거나, 아래 "좌표 직접 넣기"를 써 보세요.</div>'; return; }
+      list.innerHTML = res.map((r, i) => `<button type="button" data-i="${i}">${esc(r.label)}</button>`).join('');
+      list.onclick = e => {
+        const b = e.target.closest('[data-i]'); if (!b) return;
+        list.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+        pick = res[+b.dataset.i]; show(pick.lat, pick.lon, pick.label); save.disabled = false;
+      };
+    };
+    host.querySelector('.sgbtn').onclick = go;
+    q.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); go(); } };
+    const xyb = host.querySelector('.sgxybtn'); if (xyb) xyb.onclick = () => {
+      const m = host.querySelector('.sgxy').value.match(/(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)/);
+      if (!m) { msg.innerHTML = '<span class="sgwarn" style="display:inline-block">"37.0412, 127.0835"처럼 위도, 경도 순서로 넣어 주세요.</span>'; return; }
+      let a = +m[1], b = +m[2]; if (a > 100) [a, b] = [b, a];
+      if (a < 33 || a > 39 || b < 124 || b > 132) { msg.innerHTML = '<span class="sgwarn" style="display:inline-block">국내 좌표가 아니에요. 다시 확인해 주세요.</span>'; return; }
+      pick = { lat: a, lon: b, label: `좌표 ${a.toFixed(4)}, ${b.toFixed(4)}` }; show(a, b, pick.label); save.disabled = false;
+    };
+    save.onclick = () => {
+      if (!pick) return;
+      const v = Store.set({ place: pick.label, lat: pick.lat, lon: pick.lon });
+      save.disabled = true; list.hidden = true;
+      show(v.lat, v.lon, v.place, true);
+      msg.insertAdjacentHTML('beforeend', '<div class="sgok" style="margin-top:6px">저장했어요. 보건일지와 현장 기상 모니터에 같이 적용됩니다.</div>');
+      opts.onSave && opts.onSave(v);
+    };
+  }
+  window.SiteGeo = { Store, search, mount, mapUrl };
+})();
+</script></head><body>
+<header class="hd"><div class="in"><a class="brand" href="index.html">보건관리 페이지</a><nav aria-label="메뉴"><a href="warning.html">관리요령 · 경고표지</a><a href="edu.html">MSDS 교육일지</a><a href="health.html" class="on" aria-current="page">보건일지</a><a href="weather.html">현장 기상 모니터</a></nav></div></header><div class="ptitle"><h1>보건일지</h1><p>날씨·혈압·업무를 기록하고 인쇄</p></div>
 <main>
   <section class="card">
     <h2>1. 현장 · 일자</h2>
@@ -89,13 +202,9 @@ summary{cursor:pointer;font-weight:600;font-size:14px}
     <div class="row" style="margin-top:12px">
       <span style="font-size:14px">날씨 기준 위치 : <b id="placeTxt"></b></span>
     </div>
-    <details id="geoBox"><summary>위치 바꾸기</summary>
-      <div class="row" style="margin-top:8px">
-        <input class="in" id="geoQ" placeholder="지역 이름 (예: 전주, 평택, 화성, 세종)" style="max-width:320px">
-        <button class="btn sm" id="geoBtn" type="button">검색</button>
-        <button class="btn sm" id="geoReset" type="button">기본 위치로 되돌리기 (평택동부고속화도로)</button>
-      </div>
-      <div id="geoRes" style="margin-top:8px"></div>
+    <details id="geoBox"><summary>현장 위치 찾기 · 지도로 확인</summary>
+      <div id="geoHost"></div>
+      <div class="row" style="margin-top:8px"><button class="btn sm" id="geoReset" type="button">기본 위치로 되돌리기 (평택동부고속화도로)</button></div>
     </details>
   </section>
 
@@ -203,10 +312,10 @@ function loadStore() {
   const d = LS('hl_health_store') || {};
   const phrases = {};
   for (const k of Object.keys(DEFAULT_PHRASES)) phrases[k] = Array.isArray((d.phrases || {})[k]) ? d.phrases[k] : [...DEFAULT_PHRASES[k]];
-  return { site: { ...DEFAULT_SITE, ...(d.site || {}) }, phrases };
+  return { site: { ...DEFAULT_SITE, ...(d.site || {}), ...(LS('hl_site') || {}) }, phrases };
 }
 let S = loadStore();
-const saveStore = () => LS('hl_health_store', S);
+const saveStore = () => { LS('hl_health_store', S); LS('hl_site', S.site); };
 let F = LS('hl_health_draft') || {};          // 입력 중인 내용 (이 브라우저)
 const saveDraft = () => LS('hl_health_draft', F);
 
@@ -467,22 +576,8 @@ $('day').value = F.day;
 const showDay = () => { const d = new Date(F.day + 'T00:00:00'); $('dayTxt').textContent = `${F.day.replace(/-/g, '. ')}.  ${'일월화수목금토'[d.getDay()]}요일`; };
 $('day').onchange = () => { F.day = $('day').value || kstToday(); saveDraft(); showDay(); loadWeather(); };
 const showPlace = () => { $('placeTxt').textContent = S.site.place; };
-$('geoBtn').onclick = async () => {
-  const q = $('geoQ').value.trim(); if (!q) return; $('geoRes').innerHTML = '<p class="note">찾는 중…</p>';
-  try {
-    let res = [];
-    for (const name of [...new Set([q, q.replace(/(시|군|구|읍|면|동)$/, '')])].filter(Boolean)) {
-      const js = await getJson('https://geocoding-api.open-meteo.com/v1/search', { name, count: 10, language: 'ko', format: 'json' }, 2);
-      res = (js.results || []).map(r => ({ label: [r.admin1, r.admin2, r.name].filter(Boolean).join(' '), kr: r.country_code === 'KR', lat: r.latitude, lon: r.longitude }));
-      if (res.length) break;
-    }
-    const kr = res.filter(r => r.kr); res = kr.length ? kr : res;
-    $('geoRes').innerHTML = res.length ? res.map((r, i) => `<button class="btn sm" type="button" data-gi="${i}" style="margin:3px">${esc(r.label)}</button>`).join('') : '<div class="warn">찾지 못했습니다. 시·군 이름으로 다시 검색해 보세요 (예: 평택, 전주).</div>';
-    $('geoRes').onclick = e => { const b = e.target.closest('[data-gi]'); if (!b) return; const r = res[+b.dataset.gi]; S.site = { ...S.site, place: r.label, lat: +r.lat.toFixed(4), lon: +r.lon.toFixed(4) }; saveStore(); showPlace(); $('geoRes').innerHTML = '<div class="ok">위치를 바꿨습니다.</div>'; loadWeather(); };
-  } catch (e) { $('geoRes').innerHTML = `<div class="warn">검색하지 못했습니다: ${esc(e.message)}</div>`; }
-};
-$('geoQ').onkeydown = e => { if (e.key === 'Enter') $('geoBtn').click(); };
-$('geoReset').onclick = () => { S.site = { ...S.site, place: DEFAULT_SITE.place, lat: DEFAULT_SITE.lat, lon: DEFAULT_SITE.lon }; saveStore(); showPlace(); loadWeather(); };
+SiteGeo.mount($('geoHost'), { current: () => S.site, onSave: v => { S.site = { ...S.site, place: v.place, lat: v.lat, lon: v.lon }; saveStore(); showPlace(); loadWeather(); } });
+$('geoReset').onclick = () => { S.site = { ...S.site, place: DEFAULT_SITE.place, lat: DEFAULT_SITE.lat, lon: DEFAULT_SITE.lon }; saveStore(); showPlace(); loadWeather(); SiteGeo.mount($('geoHost'), { current: () => S.site, onSave: v => { S.site = { ...S.site, place: v.place, lat: v.lat, lon: v.lon }; saveStore(); showPlace(); loadWeather(); } }); };
 
 async function loadWeather() {
   const key = `hl_w_${F.day}_${S.site.lat}_${S.site.lon}`;
