@@ -8,18 +8,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
 /* 상단 바 (시안 1 · 미니멀 화이트) */
-.hd{background:#fff;border-bottom:1px solid #e5e7eb;position:relative;z-index:5}
-.hd .in{max-width:1200px;margin:0 auto;padding:0 24px;min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.hd .brand{font-size:20px;font-weight:800;letter-spacing:-.02em;color:#111827;text-decoration:none;padding:12px 0}
-.hd nav{display:flex;gap:4px;flex-wrap:wrap;padding:8px 0}
-.hd nav a{text-decoration:none;font-size:14px;font-weight:500;color:#4b5563;padding:10px 14px;border-radius:8px;min-height:44px;display:flex;align-items:center}
-.hd nav a:hover{background:#f3f4f6;color:#111827}
-.hd nav a.on{background:#e6f4f9;color:#0a6f94;font-weight:700}
-.hd a:focus-visible{outline:3px solid #0a6f94;outline-offset:2px}
-@media(max-width:600px){.hd .in{padding:0 14px}.hd nav{padding:0 0 8px;margin-left:-10px}.hd nav a{padding:8px 10px;font-size:13.5px}.ptitle{padding:20px 14px 0}}
+.sitehd{background:#fff;border-bottom:1px solid #e5e7eb;position:relative;z-index:5}
+.sitehd .in{max-width:1200px;margin:0 auto;padding:0 24px;min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sitehd .brand{font-size:20px;font-weight:800;letter-spacing:-.02em;color:#111827;text-decoration:none;padding:12px 0}
+.sitehd nav{display:flex;gap:4px;flex-wrap:wrap;padding:8px 0}
+.sitehd nav a{text-decoration:none;font-size:14px;font-weight:500;color:#4b5563;padding:10px 14px;border-radius:8px;min-height:44px;display:flex;align-items:center}
+.sitehd nav a:hover{background:#f3f4f6;color:#111827}
+.sitehd nav a.on{background:#e6f4f9;color:#0a6f94;font-weight:700}
+.sitehd a:focus-visible{outline:3px solid #0a6f94;outline-offset:2px}
+@media(max-width:600px){.sitehd .in{padding:0 14px}.sitehd nav{padding:0 0 8px;margin-left:-10px}.sitehd nav a{padding:8px 10px;font-size:13.5px}.ptitle{padding:20px 14px 0}}
 .ptitle{max-width:1200px;margin:0 auto;padding:28px 24px 0}
 .ptitle h1{margin:0;font-size:24px;font-weight:800;letter-spacing:-.02em;color:#111827}
 .ptitle p{margin:4px 0 0;font-size:14px;color:#4b5563}
+@media print{.sitehd,.ptitle{display:none!important}}
+/* 끝: 상단 바 */
 *{box-sizing:border-box}
 body{margin:0;background:#ffffff;color:#111827;font-family:'Noto Sans KR','Malgun Gothic',sans-serif;font-size:15px;word-break:keep-all}
 main{max-width:1200px;margin:0 auto;padding:24px 24px 60px;display:flex;flex-direction:column;gap:18px}
@@ -77,7 +79,7 @@ summary{cursor:pointer;font-weight:600;font-size:14px}
 @media(max-width:760px){.grid,.grid3{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.frame{height:820px}.tblwrap{overflow-x:auto}.tbl{min-width:760px}}
 
 </style></head><body>
-<header class="hd"><div class="in"><a class="brand" href="index.html">보건관리 페이지</a><nav aria-label="메뉴"><a href="warning.html">관리요령 · 경고표지</a><a href="edu.html" class="on" aria-current="page">MSDS 교육일지</a><a href="health.html">보건일지</a><a href="weather.html">현장 기상 모니터</a></nav></div></header><div class="ptitle"><h1>MSDS 교육일지</h1><p>교육 자료·사진을 넣어 교육일지 인쇄</p></div>
+<header class="sitehd"><div class="in"><a class="brand" href="index.html">보건관리 페이지</a><nav aria-label="메뉴"><a href="health.html">보건일지</a><a href="weather.html">기상 모니터</a><a href="msds.html">MSDS 대장</a><a href="warning.html">경고표지</a><a href="edu.html" class="on" aria-current="page">교육일지</a><a href="risk.html">위험성평가</a><a href="aftercare.html">사후관리</a><a href="rules.html">보건기준</a></nav></div></header><div class="ptitle"><h1>MSDS 교육일지</h1><p>교육 자료·사진을 넣어 교육일지 인쇄</p></div>
 <main>
   <section class="card">
     <h2>1. 교육할 MSDS 올리기</h2>

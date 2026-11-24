@@ -194,18 +194,22 @@ label.f input,label.f select,label.f textarea{font-weight:400;font-size:15px;pad
 @media print{.tabs,.top .back,.site button,.btn,.noprint{display:none!important}body{background:#fff}.card{border:0;padding:6px 0}}
 
 /* 새 사이트 모양 (시안 1) */
-.hd{background:#fff;border-bottom:1px solid #e5e7eb;position:relative;z-index:5}
-.hd .in{max-width:1200px;margin:0 auto;padding:0 24px;min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.hd .brand{font-size:20px;font-weight:800;letter-spacing:-.02em;color:#111827;text-decoration:none;padding:12px 0}
-.hd nav{display:flex;gap:4px;flex-wrap:wrap;padding:8px 0}
-.hd nav a{text-decoration:none;font-size:14px;font-weight:500;color:#4b5563;padding:10px 14px;border-radius:8px;min-height:44px;display:flex;align-items:center}
-.hd nav a:hover{background:#f3f4f6;color:#111827}
-.hd nav a.on{background:#e6f4f9;color:#0a6f94;font-weight:700}
-.hd a:focus-visible{outline:3px solid #0a6f94;outline-offset:2px}
-@media(max-width:600px){.hd .in{padding:0 14px}.hd nav{padding:0 0 8px;margin-left:-10px}.hd nav a{padding:8px 10px;font-size:13.5px}.ptitle{padding:20px 14px 0}}
+/* 상단 바 (시안 1 · 미니멀 화이트) */
+.sitehd{background:#fff;border-bottom:1px solid #e5e7eb;position:relative;z-index:5}
+.sitehd .in{max-width:1200px;margin:0 auto;padding:0 24px;min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sitehd .brand{font-size:20px;font-weight:800;letter-spacing:-.02em;color:#111827;text-decoration:none;padding:12px 0}
+.sitehd nav{display:flex;gap:4px;flex-wrap:wrap;padding:8px 0}
+.sitehd nav a{text-decoration:none;font-size:14px;font-weight:500;color:#4b5563;padding:10px 14px;border-radius:8px;min-height:44px;display:flex;align-items:center}
+.sitehd nav a:hover{background:#f3f4f6;color:#111827}
+.sitehd nav a.on{background:#e6f4f9;color:#0a6f94;font-weight:700}
+.sitehd a:focus-visible{outline:3px solid #0a6f94;outline-offset:2px}
+@media(max-width:600px){.sitehd .in{padding:0 14px}.sitehd nav{padding:0 0 8px;margin-left:-10px}.sitehd nav a{padding:8px 10px;font-size:13.5px}.ptitle{padding:20px 14px 0}}
 .ptitle{max-width:1200px;margin:0 auto;padding:28px 24px 0}
 .ptitle h1{margin:0;font-size:24px;font-weight:800;letter-spacing:-.02em;color:#111827}
 .ptitle p{margin:4px 0 0;font-size:14px;color:#4b5563}
+@media print{.sitehd,.ptitle{display:none!important}}
+.sitehd,.sitehd *,.ptitle,.ptitle *{font-family:'Noto Sans KR','Malgun Gothic',sans-serif;box-sizing:border-box}
+.sitehd{line-height:1.5}
 body{background:#fff;color:#111827}
 a{color:#0a6f94}
 .ptitle .site{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:14px;color:#4b5563}
@@ -229,9 +233,9 @@ details>summary{color:#111827}
 .tile{border-color:#e5e7eb;background:#f8fafb}
 .modal .box{max-width:640px;max-height:92vh;overflow:auto}
 label.f input,label.f select{border:1px solid #d1d5db}
-@media print{.hd,.ptitle .site button{display:none!important}}
+@media print{.sitehd,.ptitle .site button{display:none!important}}
 </style></head><body>
-<header class="hd"><div class="in"><a class="brand" href="index.html">보건관리 페이지</a><nav aria-label="메뉴"><a href="warning.html">관리요령 · 경고표지</a><a href="edu.html">MSDS 교육일지</a><a href="health.html">보건일지</a><a href="weather.html" class="on" aria-current="page">현장 기상 모니터</a></nav></div></header><div class="ptitle"><h1>현장 기상 모니터</h1><p>온열 · 한랭 · 미세먼지 — 날씨 기준 위치는 보건일지와 같아요</p><div class="site"><span>현장 <b id="siteName">-</b></span><span id="siteCoord"></span><span id="season"></span><button id="siteEdit" type="button">위치 변경</button></div></div>
+<header class="sitehd"><div class="in"><a class="brand" href="index.html">보건관리 페이지</a><nav aria-label="메뉴"><a href="health.html">보건일지</a><a href="weather.html" class="on" aria-current="page">기상 모니터</a><a href="msds.html">MSDS 대장</a><a href="warning.html">경고표지</a><a href="edu.html">교육일지</a><a href="risk.html">위험성평가</a><a href="aftercare.html">사후관리</a><a href="rules.html">보건기준</a></nav></div></header><div class="ptitle"><h1>현장 기상 모니터</h1><p>온열 · 한랭 · 미세먼지 — 날씨 기준 위치는 보건일지와 같아요</p><div class="site"><span>현장 <b id="siteName">-</b></span><span id="siteCoord"></span><span id="season"></span><button id="siteEdit" type="button">위치 변경</button></div></div>
 <nav class="tabs"><div class="in">
   <button class="on" data-p="now" type="button">지금 · 예보</button>
   <button data-p="hist" type="button">지난 기록</button>
