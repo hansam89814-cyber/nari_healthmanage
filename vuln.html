@@ -374,7 +374,7 @@ input.cf,td select,td input[type=number]{border:1px solid #d1d5db}
       <div class="grid">
         <label class="f">성명<input data-k="name"></label>
         <label class="f">생년월일<input data-k="birth" type="date"></label>
-        <label class="f">나이(만) <span class="muted" style="font-weight:400">생년월일이 없을 때</span><input data-k="age" type="number" min="15" max="99"></label>
+        <label class="f">나이(만)<input data-k="age" type="number" min="15" max="99"></label>
         <label class="f">협력사<input data-k="company"></label>
         <label class="f">공종<input data-k="trade" placeholder="예) 골조, 조경"></label>
         <label class="f">고용 형태<select data-k="emp"><option>상용</option><option>일용</option><option>일용 용역</option></select></label>
@@ -555,6 +555,7 @@ function fill(){if(!cur){$('#form').style.display='none';$('#noSel').style.displ
   $$('#form [data-k]').forEach(el=>{const v=getK(cur,el.dataset.k);if(el.type==='checkbox')el.checked=!!v;else el.value=v??''});
   $('#lgDate').value=KST();$('#lgS').value='';$('#lgD').value='';$('#lgG').value='';$('#lgGt').value='';$('#lgMed').value='';$('#lgNote').value='';refresh()}
 function refresh(){const j=judge(cur);
+  {const ai=$('[data-k=age]');if(ai){if(cur.birth){const v=ageOf(cur);ai.value=v??'';ai.readOnly=true;ai.style.background='#f3f4f6';ai.title='생년월일로 자동 계산돼요';if(String(cur.age)!==String(v??'')){cur.age=v??'';save()}}else{ai.readOnly=false;ai.style.background='';ai.title=''}}}
   $('#oldBox').style.display=j.old?'':'none';
   $('#bpBox').style.display=j.bpOut?'':'none';
   $$('.v-bp').forEach(s=>s.textContent=`${cur.bpS||'-'}/${cur.bpD||'-'} · 기준 ${CF.hiS}/${CF.hiD} 이상 또는 ${CF.loS}/${CF.loD} 이하`);
