@@ -267,6 +267,13 @@ table.led{min-width:1020px}
 .docf .fi .pdf{font-size:12px;font-weight:700;color:#0a6f94;padding:0 8px;cursor:pointer;height:44px;display:flex;align-items:center;max-width:140px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .docf .fi .x{border:0;background:#fff;border-radius:50%;width:20px;height:20px;line-height:18px;font-size:12px;cursor:pointer;color:#a3261a;position:absolute;top:-8px;right:-8px;border:1px solid #f3c2bd;padding:0}
 @media(max-width:700px){.docrow{grid-template-columns:1fr}}
+.docf .fi .pr{border:0;background:#fff;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;position:absolute;bottom:-8px;right:-8px;border:1px solid #d1d5db;padding:0;line-height:18px}
+.dpage{break-before:page;text-align:center}.dpage:first-child{break-before:auto}
+.dpage .dh{text-align:left;font-size:10pt;margin:0 0 4mm;border-bottom:1px solid #999;padding-bottom:2mm}
+.dpage img{max-width:100%;max-height:255mm;object-fit:contain}
+#pdfModal{position:fixed;inset:0;background:rgba(17,24,39,.45);display:flex;align-items:center;justify-content:center;z-index:60;padding:16px}
+#pdfModal .box{background:#fff;border-radius:12px;padding:18px 20px;max-width:460px;width:100%}
+#pdfModal .it{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #eef0f2}
 .req-ok{color:#1f6b45}.req-no{color:#a3261a}
 
 /* 새 사이트 모양 (시안 1) */
@@ -409,6 +416,7 @@ input.cf,td select,td input[type=number]{border:1px solid #d1d5db}
         <div class="docrow"><label class="chk"><input type="checkbox" data-k="doc.reason"> 채용사유서</label><div class="docf" id="df-reason"></div><label class="btn ghost sm">파일 올리기<input type="file" accept="image/*,application/pdf" multiple hidden data-up="reason"></label></div>
       </div>
       <p class="muted" style="margin:8px 0 0">사진(휴대폰 촬영)이나 PDF를 올리면 해당 서류가 자동으로 체크돼요. 파일은 이 기기의 브라우저에만 보관되고, [백업 저장]에 함께 들어가요.</p>
+      <div class="row" style="margin-top:10px"><button class="btn" type="button" onclick="docPrintAll()">🖨 업로드한 서류 모두 인쇄</button><span class="muted">파일 옆 🖨 버튼으로 한 장씩 인쇄할 수도 있어요.</span></div>
     </div>
     <div class="card">
       <h2>혈압 측정·건강상담 기록 <small id="cycle"></small></h2>
@@ -650,13 +658,37 @@ async function docUp(doc,files){if(!cur||!files.length)return;const w=cur,key=w.
 async function docOpen(doc,i){const list=await vGet(cur.id+'_'+doc);const x=list&&list[i];if(!x)return;const b=await (await fetch(x.src)).blob();const u=URL.createObjectURL(b);const win=window.open(u,'_blank');if(!win){const a=document.createElement('a');a.href=u;a.download=x.name||'서류';a.click()}setTimeout(()=>URL.revokeObjectURL(u),60000)}
 async function docDel(doc,i){if(!confirm('이 파일을 지울까요?'))return;const key=cur.id+'_'+doc;const list=(await vGet(key))||[];list.splice(i,1);await vPut(key,list.length?list:null);docShow()}
 async function docShow(){if(!cur)return;const w=cur;for(const d of DOCS){const el=document.getElementById('df-'+d);if(!el)continue;const list=(await vGet(w.id+'_'+d))||[];if(cur!==w)return;
-  el.innerHTML=list.length?list.map((x,i)=>`<span class="fi">${x.t==='img'?`<img src="${x.src}" alt="${esc(x.name)}" title="${esc(x.name)} · 눌러서 크게 보기" onclick="docOpen('${d}',${i})">`:`<span class="pdf" title="${esc(x.name)}" onclick="docOpen('${d}',${i})">PDF · ${esc(x.name)}</span>`}<button class="x" type="button" aria-label="파일 삭제" onclick="docDel('${d}',${i})">✕</button></span>`).join(''):'<span class="muted" style="font-size:12.5px">파일 없음</span>'}}
+  el.innerHTML=list.length?list.map((x,i)=>`<span class="fi">${x.t==='img'?`<img src="${x.src}" alt="${esc(x.name)}" title="${esc(x.name)} · 눌러서 크게 보기" onclick="docOpen('${d}',${i})">`:`<span class="pdf" title="${esc(x.name)}" onclick="docOpen('${d}',${i})">PDF · ${esc(x.name)}</span>`}<button class="x" type="button" aria-label="파일 삭제" onclick="docDel('${d}',${i})">✕</button><button class="pr" type="button" aria-label="이 파일 인쇄" title="이 파일 인쇄" onclick="docPrintOne('${d}',${i})">🖨</button></span>`).join(''):'<span class="muted" style="font-size:12.5px">파일 없음</span>'}}
 document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.up){const fs=[...t.files];t.value='';docUp(t.dataset.up,fs)}});
 {const _fill=fill;fill=function(){_fill();docShow()}}
 {const _del=$('#del').onclick;$('#del').onclick=()=>{const id=cur&&cur.id;_del();if(id&&!W.some(w=>w.id===id))DOCS.forEach(d=>vPut(id+'_'+d,null))}}
 $('#bak').onclick=async()=>{const files={};for(const w of W)for(const d of DOCS){const v=await vGet(w.id+'_'+d);if(v)files[w.id+'_'+d]=v}
   dl(new Blob([JSON.stringify({app:'vuln-workers',v:2,workers:W,cfg:CF,files},null,1)],{type:'application/json'}),`취약근로자관리대장_백업_${KST()}.json`)};
 $('#res').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());if(!Array.isArray(j.workers))throw 0;if(!confirm(`백업의 근로자 ${j.workers.length}명으로 바꿀까요? (지금 목록은 지워져요)`))return;W=j.workers;if(j.cfg)CF=Object.assign({},CF0,j.cfg);for(const[k,v]of Object.entries(j.files||{}))await vPut(k,v);save();saveCf();fillCf();render()}catch(err){alert('백업 파일을 읽지 못했어요.')}e.target.value=''};
+
+/* ---------- 업로드한 서류 인쇄 ---------- */
+const DOCNAME={op:'의사소견서',gen:'일반건강검진 결과지',cv:'뇌심혈관 위험평가',reason:'채용사유서'};
+function printImgs(items){if(!items.length)return;
+  $('#reqDoc').innerHTML=items.map(x=>`<div class="dpage"><div class="dh"><b>${esc(cur.name||'')}</b> · ${DOCNAME[x.d]} ${x.n>1?`(${x.k}/${x.n})`:''} <span style="float:right;font-size:9pt;color:#555">${esc(x.name||'')}</span></div><img src="${x.src}" alt="${DOCNAME[x.d]}"></div>`).join('');
+  document.body.classList.add('req');pageSize('portrait');
+  const imgs=[...$('#reqDoc').querySelectorAll('img')];Promise.all(imgs.map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r}))).then(()=>setTimeout(()=>window.print(),80))}
+async function printPdf(x){const b=await (await fetch(x.src)).blob();const u=URL.createObjectURL(b);let f=document.getElementById('pdfFrame');if(f)f.remove();
+  f=document.createElement('iframe');f.id='pdfFrame';f.style.cssText='position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0';f.src=u;
+  f.onload=()=>setTimeout(()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(e){window.open(u,'_blank')}},400);document.body.appendChild(f)}
+async function docList(){const out=[];for(const d of DOCS){const L=(await vGet(cur.id+'_'+d))||[];L.forEach((x,i)=>out.push({...x,d,k:i+1,n:L.length}))}return out}
+async function docPrintOne(d,i){const L=(await vGet(cur.id+'_'+d))||[];const x=L[i];if(!x)return;if(x.t==='pdf')printPdf(x);else printImgs([{...x,d,k:i+1,n:L.length}])}
+async function docPrintAll(){if(!cur)return;const all=await docList();if(!all.length){alert('올린 서류가 없어요.');return}
+  const imgs=all.filter(x=>x.t==='img'),pdfs=all.filter(x=>x.t==='pdf');
+  if(pdfs.length){let m=document.getElementById('pdfModal');if(m)m.remove();m=document.createElement('div');m.id='pdfModal';
+    m.innerHTML=`<div class="box"><h3 style="margin:0 0 6px;font-size:17px">서류 인쇄</h3><p class="muted" style="margin:0 0 10px">사진 서류는 한 번에, PDF 서류는 하나씩 인쇄돼요.</p>
+    ${imgs.length?`<div class="it"><span>사진 서류 ${imgs.length}장</span><button class="btn sm" type="button" id="pmImg">인쇄</button></div>`:''}
+    ${pdfs.map((x,i)=>`<div class="it"><span>${DOCNAME[x.d]} · <span class="muted">${esc(x.name)}</span></span><button class="btn sm" type="button" data-pi="${i}">인쇄</button></div>`).join('')}
+    <div style="text-align:right;margin-top:12px"><button class="btn ghost sm" type="button" id="pmClose">닫기</button></div></div>`;
+    document.body.appendChild(m);m.querySelector('#pmClose').onclick=()=>m.remove();
+    const bi=m.querySelector('#pmImg');if(bi)bi.onclick=()=>{m.remove();printImgs(imgs)};
+    m.querySelectorAll('[data-pi]').forEach(b=>b.onclick=()=>printPdf(pdfs[+b.dataset.pi]));
+    return}
+  printImgs(imgs)}
 fillCf();render();jCount();
 
 function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
