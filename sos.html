@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko" translate="no"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="google" content="notranslate">
+<title>위치 보내기 (SOS)</title>
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzBhNmY5NCIvPjxwYXRoIGQ9Ik01IDE3aDZsMy03IDUgMTMgMy02aDUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIyLjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* 상단 바 (시안 1 · 미니멀 화이트) */
+.sitehd{background:#fff;border-bottom:1px solid #e5e7eb;position:relative;z-index:5}
+.sitehd .in{max-width:1200px;margin:0 auto;padding:0 24px;min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sitehd .brand{font-size:20px;font-weight:800;letter-spacing:-.02em;color:#111827;text-decoration:none;padding:12px 0}
+.sitehd nav{display:flex;gap:4px;flex-wrap:wrap;padding:8px 0}
+.sitehd nav a{text-decoration:none;font-size:14px;font-weight:500;color:#4b5563;padding:10px 14px;border-radius:8px;min-height:44px;display:flex;align-items:center}
+.sitehd nav a:hover{background:#f3f4f6;color:#111827}
+.sitehd nav a.on{background:#e6f4f9;color:#0a6f94;font-weight:700}
+.sitehd a:focus-visible{outline:3px solid #0a6f94;outline-offset:2px}
+@media(max-width:600px){.sitehd .in{padding:0 14px}.sitehd nav{padding:0 0 8px;margin-left:-10px}.sitehd nav a{padding:8px 10px;font-size:13.5px}.ptitle{padding:20px 14px 0}}
+.ptitle{max-width:1200px;margin:0 auto;padding:28px 24px 0}
+.ptitle h1{margin:0;font-size:24px;font-weight:800;letter-spacing:-.02em;color:#111827}
+.ptitle p{margin:4px 0 0;font-size:14px;color:#4b5563}
+@media print{.sitehd,.ptitle{display:none!important}}
+/* 끝: 상단 바 */
+*{box-sizing:border-box}
+body{margin:0;background:#ffffff;color:#111827;font-family:'Noto Sans KR','Malgun Gothic',sans-serif;font-size:15px;word-break:keep-all}
+main{max-width:1200px;margin:0 auto;padding:24px 24px 60px;display:flex;flex-direction:column;gap:18px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:22px 24px}
+.card h2{margin:0 0 4px;font-size:18px;font-weight:800;color:#111827}
+.card .hint{margin:0 0 14px;font-size:13px;color:#4b5563}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px}
+label.f,div.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:#4b5563}
+.f input,.f select,.f textarea,input.in,select.in,textarea.in{font:inherit;font-size:15px;padding:9px 11px;border:1px solid #d1d5db;border-radius:8px;color:#111827;background:#fff;width:100%}
+textarea.in,.f textarea{resize:vertical;line-height:1.5}
+input:focus,select:focus,textarea:focus{outline:2px solid #0a6f94;outline-offset:0;border-color:#0a6f94}
+.drop{border:2px dashed #aab4bc;border-radius:12px;padding:26px;text-align:center;color:#3e4a54;background:#fafbfc;cursor:pointer}
+.drop.on{background:#e6f4f9;border-color:#0a6f94}
+.drop b{color:#111827}
+.btn{font:inherit;font-size:15px;font-weight:700;padding:11px 20px;border-radius:8px;border:1px solid #111827;background:#fff;color:#111827;cursor:pointer;display:inline-block;text-decoration:none}
+.btn.pri{background:#111827;color:#fff}
+.btn.sm{font-size:13px;padding:6px 12px;font-weight:500}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:focus-visible{outline:3px solid #0a6f94;outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.warn{background:#fff5e6;border:1px solid #f0d3a2;color:#7a4b00;border-radius:8px;padding:8px 12px;font-size:13.5px;margin:6px 0}
+.info{background:#eaf7fc;border:1px solid #bfe5f4;color:#0b4a63;border-radius:8px;padding:8px 12px;font-size:13.5px;margin:6px 0}
+.ok{background:#e9f6ee;border:1px solid #bfe3cc;color:#155d2f;border-radius:8px;padding:8px 12px;font-size:13.5px;margin:6px 0}
+.note{font-size:12.5px;color:#6b7280;margin:0}
+.tiles{display:flex;flex-wrap:wrap;gap:10px}
+.tile{border:2px solid #e5e7eb;border-radius:10px;padding:6px;background:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:#4b5563;font-family:inherit}
+.tile img{width:60px;height:60px}
+.tile.on{border-color:#0a6f94;background:#e6f4f9;color:#0b4a63;font-weight:700}
+.frame{width:100%;height:1180px;border:1px solid #d1d5db;border-radius:8px;background:#fff}
+.busy{position:fixed;inset:0;background:rgba(255,255,255,.8);display:none;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#111827;z-index:50}
+.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.metric{background:#f8fafb;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px}
+.metric .l{font-size:12.5px;color:#4b5563}.metric .v{font-size:20px;font-weight:700;margin-top:2px}
+.metric.hot{background:#fff3cd}
+.tbl{display:grid;gap:6px;align-items:center}
+.tbl .h{font-size:12.5px;font-weight:700;color:#4b5563}
+.tbl input,.tbl select{font:inherit;font-size:14px;padding:7px 9px;border:1px solid #d1d5db;border-radius:7px;width:100%;background:#fff}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}
+.tabs button{font:inherit;font-size:13.5px;padding:6px 12px;border-radius:8px;border:1px solid #d1d5db;background:#fff;cursor:pointer}
+.tabs button.on{background:#e6f4f9;color:#0a6f94;border-color:#0a6f94;font-weight:700}
+.chk{display:flex;gap:9px;align-items:flex-start;padding:6px 9px;border-radius:8px;cursor:pointer;line-height:1.5;font-size:14.5px}
+.chk:hover{background:#f8fafb}
+.chk input{margin-top:4px;width:17px;height:17px;flex:none;accent-color:#111827}
+details{border:1px solid #e5e7eb;border-radius:10px;padding:8px 12px;margin-top:8px}
+summary{cursor:pointer;font-weight:600;font-size:14px}
+.ms{position:relative}
+.ms .box{min-height:36px;border:1px solid #d1d5db;border-radius:7px;padding:3px 5px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;background:#fff;cursor:text}
+.ms .tag{background:#e6f4f9;color:#0b4a63;border-radius:6px;padding:2px 6px;font-size:13px;display:flex;gap:4px;align-items:center}
+.ms .tag button{border:0;background:none;cursor:pointer;color:#0b4a63;font-size:13px;padding:0}
+.ms .box input{border:0;outline:0;flex:1;min-width:70px;padding:4px;font-size:14px}
+.ms .list{position:absolute;z-index:20;left:0;right:0;top:100%;background:#fff;border:1px solid #d1d5db;border-radius:8px;max-height:220px;overflow:auto;display:none;box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.ms .list div{padding:7px 10px;cursor:pointer;font-size:14px}
+.ms .list div:hover,.ms .list div.act{background:#e6f4f9}
+@media(max-width:760px){.grid,.grid3{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.frame{height:820px}.tblwrap{overflow-x:auto}.tbl{min-width:760px}}
+
+</style></head><body>
+<style>
+body{background:#f8fafb}
+[hidden]{display:none!important}
+.sos{max-width:560px;margin:0 auto;padding:20px 16px 60px;display:flex;flex-direction:column;gap:14px}
+.sos header{display:flex;flex-direction:column;gap:2px;padding:6px 2px}
+.sos header b{font-size:22px;font-weight:800;color:#111827;letter-spacing:-.02em}
+.sos header span{font-size:13.5px;color:#4b5563}
+.box{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px}
+.box h2{margin:0 0 10px;font-size:18px;font-weight:800;color:#111827}
+.ct{width:100%;border-collapse:collapse;font-size:14.5px;line-height:1.55}
+.ct th{width:30%;text-align:left;vertical-align:top;padding:8px 8px 8px 0;color:#0a6f94;font-weight:700;border-top:1px solid #eef0f2}
+.ct td{padding:8px 0;border-top:1px solid #eef0f2;color:#111827}
+.fld{display:flex;flex-direction:column;gap:4px;font-size:14px;color:#374151;font-weight:600;margin-top:10px}
+.fld input{font:inherit;font-size:17px;font-weight:400;padding:12px;border:1px solid #d1d5db;border-radius:10px}
+.agree{display:flex;gap:10px;align-items:flex-start;font-size:15.5px;font-weight:700;margin-top:14px;line-height:1.5}
+.agree input{width:24px;height:24px;flex:none;margin-top:1px;accent-color:#0a6f94}
+.big{display:block;width:100%;font:inherit;border:0;border-radius:16px;cursor:pointer;text-align:center;text-decoration:none}
+.b-sos{background:#c62828;color:#fff;font-size:24px;font-weight:800;padding:26px 12px;box-shadow:0 6px 16px rgba(198,40,40,.25)}
+.b-sos small{display:block;font-size:14px;font-weight:600;opacity:.92;margin-top:4px}
+.b-loc{background:#0a6f94;color:#fff;font-size:18px;font-weight:700;padding:18px 12px}
+.b-pri{background:#111827;color:#fff;font-size:17px;font-weight:700;padding:16px 12px}
+.b-pri:disabled{opacity:.4;cursor:default}
+.b-line{background:#fff;color:#111827;border:1px solid #d1d5db;font-size:16px;font-weight:700;padding:14px 12px}
+.tels{display:flex;flex-direction:column;gap:8px}
+.tel{display:flex;justify-content:space-between;align-items:center;min-height:58px;padding:0 16px;border:2px solid #0a6f94;border-radius:14px;text-decoration:none;color:#0a6f94;background:#fff}
+.tel span{font-size:17px;font-weight:800}
+.tel b{font-size:17px;font-weight:700;color:#111827}
+.tel::before{content:'📞';margin-right:8px}
+.tel span{flex:1}
+.c119b{background:#fff;color:#c62828;border:2px solid #c62828;font-size:20px;font-weight:800;padding:18px 12px}
+.calls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.calls a{display:flex;align-items:center;justify-content:center;gap:6px;min-height:56px;border-radius:14px;font-size:16.5px;font-weight:700;text-decoration:none}
+.c119{background:#fff;color:#c62828;border:2px solid #c62828}
+.cmgr{background:#fff;color:#0a6f94;border:2px solid #0a6f94}
+.msg{font-size:14.5px;line-height:1.6;border-radius:12px;padding:12px 14px;display:none}
+.msg.on{display:block}
+.msg.info{background:#eaf7fc;color:#0b4a63;border:1px solid #bfe5f4}
+.msg.ok{background:#e9f6ee;color:#155d2f;border:1px solid #bfe3cc}
+.msg.warn{background:#fff5e6;color:#7a4b00;border:1px solid #f0d3a2}
+.who{font-size:15px;color:#374151}
+.who b{font-size:18px;color:#111827}
+.small{font-size:13px;color:#4b5563;line-height:1.6;margin:0}
+.lnk{background:none;border:0;color:#4b5563;text-decoration:underline;font:inherit;font-size:13.5px;cursor:pointer;padding:6px 0}
+</style>
+<div class="sos">
+  <header><b>위치 보내기 (SOS)</b><span id="siteTxt"></span></header>
+
+  <!-- 설정 없음 -->
+  <section class="box" id="vNoTo" hidden>
+    <h2>보건관리자에게 받은 링크로 들어와 주세요</h2>
+    <p class="small">이 화면은 보건관리자가 알려 준 링크나 QR코드로 열어야 해요. 보건관리자 연락처가 들어 있어야 위치를 보낼 수 있어요.</p>
+  </section>
+
+  <!-- 동의 -->
+  <section class="box" id="vConsent" hidden>
+    <h2>위치 보내기 동의</h2>
+    <table class="ct">
+      <tr><th>목적</th><td>몸이 안 좋거나 도움이 필요할 때, 보건관리자가 빨리 찾아가 돕기 위해서예요.</td></tr>
+      <tr><th>보내는 정보</th><td>이름, 협력사, 버튼을 누른 <b>그 순간의 위치</b>(지도 링크)와 시각</td></tr>
+      <tr><th>보내는 때</th><td><b>내가 버튼을 누를 때만</b> 보내요. 자동으로 계속 위치를 확인하지 않아요.</td></tr>
+      <tr><th>받는 사람</th><td id="toTxt">보건관리자</td></tr>
+      <tr><th>보관</th><td>이 사이트에는 위치를 저장하지 않아요. 보낸 문자는 보건관리자 휴대폰에 남고, 취약근로자 관리가 끝나면(투입 종료 시) 지워요.</td></tr>
+      <tr><th>거부·철회</th><td>동의하지 않아도 되고, <b>동의하지 않아도 불이익은 없어요.</b> 동의한 뒤에도 언제든 철회할 수 있어요.</td></tr>
+    </table>
+    <label class="fld">이름<input id="cName" autocomplete="name" placeholder="예) 홍길동"></label>
+    <label class="fld">협력사 (선택 · 글자를 넣으면 목록에서 찾아져요)<input id="cCo" list="coList" placeholder="눌러서 고르거나 검색하세요" autocomplete="off"></label>
+    <datalist id="coList"></datalist>
+    <label class="agree"><input type="checkbox" id="cOk"> 위 내용을 읽었고, 위치 보내기에 동의해요.</label>
+    <button class="big b-pri" id="cGo" type="button" style="margin-top:14px" disabled>동의하고 시작하기</button>
+    <p class="small" style="margin-top:10px">동의하지 않으려면 이 화면을 그냥 닫으세요.</p>
+  </section>
+
+  <!-- 동의 알림 -->
+  <section class="box" id="vNotify" hidden>
+    <h2>동의했어요</h2>
+    <p class="small" style="margin-bottom:12px">보건관리자에게 동의했다는 문자를 한 번 보내 주세요. 동의 기록으로 남아요.</p>
+    <button class="big b-pri" id="nSend" type="button">보건관리자에게 동의 문자 보내기</button>
+    <button class="lnk" id="nSkip" type="button" style="margin-top:6px">나중에 할게요</button>
+  </section>
+
+  <!-- 메인 -->
+  <section id="vMain" hidden style="display:flex;flex-direction:column;gap:14px">
+    <div class="box who"><b id="meName"></b> <span id="meCo"></span><br><span class="small">버튼을 누르면 위치가 담긴 문자가 만들어져요. <b>[보내기]</b>를 눌러야 보건관리자에게 가요.</span></div>
+    <button class="big b-sos" id="bSos" type="button">🆘 도움 요청<small>지금 내 위치를 보건관리자에게 보내요</small></button>
+    <button class="big b-loc" id="bLoc" type="button">📍 내 위치만 알리기</button>
+    <div class="msg" id="msg"></div>
+    <button class="big b-line" id="bShare" type="button" hidden>카카오톡 등 다른 앱으로 보내기</button>
+    <div class="box"><h2 style="font-size:16px;margin:0 0 10px">바로 전화하기</h2>
+      <div class="tels">
+        <a class="tel" href="tel:01039332086"><span>안전팀장</span><b>010-3933-2086</b></a>
+        <a class="tel" href="tel:01033385763"><span>안전관리자</span><b>010-3338-5763</b></a>
+        <a class="tel" href="tel:01089788349"><span>보건관리자</span><b>010-8978-8349</b></a>
+      </div></div>
+    <div class="box"><p class="small"><b style="color:#c62828">심정지 등 생명이 위급한 상황에서는 망설이지 말고 즉시 119에 신고하세요.</b><br>위치를 보내려면 휴대폰에서 <b>위치 권한을 '허용'</b>해 주세요.</p>
+      <button class="lnk" id="bQuit" type="button">동의 철회하기</button></div>
+    <a class="big c119b" href="tel:119">📞 119 신고</a>
+  </section>
+</div>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const Q=new URLSearchParams(location.search);
+const DX=(()=>{try{const d=Q.get('d');if(!d)return {};const b=atob(d.replace(/-/g,'+').replace(/_/g,'/'));return JSON.parse(new TextDecoder().decode(Uint8Array.from(b,c=>c.charCodeAt(0))))}catch(e){return {}}})();
+const TO=(Q.get('to')||'').replace(/[^\d,]/g,''),MGR=DX.n||Q.get('n')||'보건관리자',SITE=DX.s||Q.get('s')||'';
+const LS={get(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const KEY='sos_me';
+const iOS=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const now=()=>new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
+const smsUrl=body=>`sms:${TO}${iOS?'&':'?'}body=${encodeURIComponent(body)}`;
+function show(v){['vNoTo','vConsent','vNotify','vMain'].forEach(x=>{const e=$(x);e.hidden=x!==v;if(x==='vMain')e.style.display=x===v?'flex':'none'})}
+function msg(t,k){const m=$('msg');m.className='msg on '+(k||'info');m.innerHTML=t}
+$('siteTxt').textContent=SITE?`현장: ${SITE}`:'';
+const fmtTel=t=>t.split(',')[0].replace(/^(\d{3})(\d{3,4})(\d{4})$/,'$1-$2-$3');
+$('toTxt').textContent=`${MGR}${TO?` (${fmtTel(TO)})`:''}`;
+$('coList').innerHTML=['광혁건설','중정공영','대로건설','아시아나IDT','정국토건','재영전기','투인산업','세진기술개발','주성엔지니어링','태광피씨건설','디앤아이한라','천수녹화조경','SB건설','다혜건설','한경기전','세라코','에스알디코리아','에스티'].map(c=>`<option value="${c}"></option>`).join('');
+function start(){const me=LS.get(KEY);if(!TO){show('vNoTo');return}if(!me){show('vConsent');return}
+  $('meName').textContent=me.name;$('meCo').textContent=me.co?`· ${me.co}`:'';show('vMain')}
+const chk=()=>{$('cGo').disabled=!($('cOk').checked&&$('cName').value.trim())};
+$('cOk').onchange=chk;$('cName').oninput=chk;
+$('cGo').onclick=()=>{const me={name:$('cName').value.trim(),co:$('cCo').value.trim(),agreedAt:now()};LS.set(KEY,me);show('vNotify')};
+$('nSend').onclick=()=>{const me=LS.get(KEY);location.href=smsUrl(`[위치 보내기 동의] ${me.name}${me.co?`(${me.co})`:''}\n동의 일시: ${me.agreedAt}\n목적·보내는 정보·보관·거부권 안내를 읽고 동의함${SITE?`\n- ${SITE}`:''}`);setTimeout(start,800)};
+$('nSkip').onclick=start;
+let last='';
+function getPos(){return new Promise((res,rej)=>{if(!navigator.geolocation){rej(new Error('이 휴대폰은 위치 기능을 쓸 수 없어요.'));return}
+  navigator.geolocation.getCurrentPosition(p=>res(p.coords),e=>rej(e),{enableHighAccuracy:true,timeout:15000,maximumAge:0})})}
+async function send(sos){const me=LS.get(KEY);if(!me)return start();
+  msg('위치를 찾는 중이에요… (몇 초 걸릴 수 있어요)');
+  let loc='',note='';
+  try{const c=await getPos();const lat=c.latitude.toFixed(6),lon=c.longitude.toFixed(6);
+    loc=`위치: https://map.kakao.com/link/map/${encodeURIComponent(me.name)},${lat},${lon}\n(정확도 약 ${Math.round(c.accuracy)}m)`}
+  catch(e){note=e&&e.code===1?'위치 권한이 꺼져 있어 위치 없이 보내요. 휴대폰 설정에서 이 사이트의 위치 권한을 허용해 주세요.':'위치를 찾지 못해 위치 없이 보내요. 실내라면 창가나 밖으로 나가 다시 눌러 보세요.';loc='위치: 확인 못 함 (전화로 위치를 물어봐 주세요)'}
+  last=`[${sos?'도움 요청':'위치 알림'}] ${me.name}${me.co?`(${me.co})`:''}\n${now()}\n${loc}${SITE?`\n- ${SITE}`:''}`;
+  msg((note?`<b>${note}</b><br>`:'')+'문자 앱이 열리면 <b>[보내기]</b>를 꼭 눌러 주세요.'+(sos?'<br>위급하면 <b>119</b>에도 전화하세요.':''),note?'warn':'ok');
+  $('bShare').hidden=!navigator.share;
+  location.href=smsUrl(last)}
+$('bSos').onclick=()=>send(true);$('bLoc').onclick=()=>send(false);
+$('bShare').onclick=()=>{if(last&&navigator.share)navigator.share({text:last}).catch(()=>{})};
+$('bQuit').onclick=()=>{const me=LS.get(KEY);if(!confirm('위치 보내기 동의를 철회할까요?'))return;LS.del(KEY);
+  if(me&&confirm('보건관리자에게 철회했다는 문자를 보낼까요?'))location.href=smsUrl(`[위치 보내기 동의 철회] ${me.name}${me.co?`(${me.co})`:''}\n철회 일시: ${now()}${SITE?`\n- ${SITE}`:''}`);
+  start()};
+start();
+})();
+</script>
+
+</body></html>
