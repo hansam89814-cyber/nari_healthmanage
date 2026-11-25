@@ -1598,12 +1598,11 @@ input.cf,td select,td input[type=number]{border:1px solid #d1d5db}
 #q{border:1px solid #d1d5db!important}
 .row input[data-k]{border:1px solid #d1d5db!important}
 </style></head><body>
-<header class="sitehd"><div class="in"><a class="brand" href="index.html">보건관리 페이지</a><nav aria-label="메뉴"><a href="health.html">보건일지</a><a href="edu.html">교육일지</a><a href="warning.html">경고표지</a><a href="msds.html">MSDS 대장</a><a href="aftercare.html">사후관리</a><a href="vuln.html" class="on" aria-current="page">취약근로자</a><a href="risk.html">위험성평가</a><a href="weather.html">기상 모니터</a><a href="rules.html">보건기준</a></nav></div></header><div class="ptitle"><h1>취약근로자 관리대장</h1><p>고령근로자(만 60세 이상)·혈압 기준으로 취약근로자를 분류하고, 채용 서류와 관리대장·건강상담일지를 관리해요</p></div>
+<header class="sitehd"><div class="in"><a class="brand" href="index.html">보건관리 페이지</a><nav aria-label="메뉴"><a href="health.html">보건일지</a><a href="edu.html">교육일지</a><a href="warning.html">경고표지</a><a href="msds.html">MSDS 대장</a><a href="aftercare.html">사후관리</a><a href="vuln.html" class="on" aria-current="page">취약근로자</a><a href="risk.html">위험성평가</a><a href="weather.html">기상 모니터</a><a href="rules.html">보건기준</a><a href="sos-location.html">SOS 위치 확인</a></nav></div></header><div class="ptitle"><h1>취약근로자 관리대장</h1><p>고령근로자(만 60세 이상)·혈압 기준으로 취약근로자를 분류하고, 채용 서류와 관리대장·건강상담일지를 관리해요</p></div>
 <nav class="tabs noprint"><div class="in">
   <button class="on" data-p="list" type="button">관리대장</button>
   <button data-p="edit" type="button" id="tabEdit">근로자 입력</button>
   <button data-p="std" type="button">관리 기준</button>
-  <button data-p="sos" type="button">위치 보내기(SOS)</button>
 </div></nav>
 <main>
 <!-- ① 관리대장 -->
@@ -1725,27 +1724,6 @@ input.cf,td select,td input[type=number]{border:1px solid #d1d5db}
 </section>
 
 <!-- ③ 관리 기준 -->
-<section class="pane" id="p-sos">
-  <div class="card">
-    <h2>위치 보내기(SOS) 설정 <small>근로자가 버튼을 누를 때만 그 순간의 위치를 문자로 보내요</small></h2>
-    <div class="grid">
-      <label class="f">위치를 받을 휴대폰 번호<input id="sosTo" inputmode="tel" placeholder="010-0000-0000"></label>
-      <label class="f">받는 사람 (표시용)<input id="sosN" placeholder="예) 보건관리자 홍길동"></label>
-      <label class="f">현장명<input id="sosS"></label>
-    </div>
-    <div id="sosOut" style="margin-top:14px"></div>
-  </div>
-  <div class="card">
-    <h2>이렇게 써요</h2>
-    <div class="note">① 위 칸에 위치를 받을 휴대폰 번호를 넣으면 <b>근로자용 링크와 QR코드</b>가 만들어져요.<br>
-    ② <b>QR 안내문</b>을 인쇄해 휴게실·TBM 장소에 붙이거나, 링크를 취약근로자에게 문자·카톡으로 보내요.<br>
-    ③ 근로자가 처음 열면 <b>동의 화면</b>이 나오고, 동의하면 "동의 문자"가 와요. 근로자 입력 화면의 <b>위치 보내기 동의</b>에 체크하세요. 종이로 받으려면 <b>종이 동의서</b>를 인쇄해 쓰세요.<br>
-    ④ 근로자가 <b>🆘 도움 요청</b>을 누르면 이름·시각·지도 링크가 담긴 문자가 와요. 링크를 누르면 카카오맵에서 위치가 보여요.</div>
-    <div class="note" style="margin-top:10px"><b>꼭 지켜 주세요</b><br>· 동의는 본인이 자유롭게 정해요. 동의를 강요하거나, 동의하지 않았다고 불이익을 주면 안 돼요.<br>
-    · 위치는 이 사이트에 저장되지 않고 받은 휴대폰 문자에만 남아요. 관리가 끝나면(투입 종료) 문자를 지워 주세요.<br>
-    · 근로자 감시 설비 도입은 노사협의회 협의 대상일 수 있어요. 도입 전에 회사(안전보건·인사·법무) 확인을 받으세요.</div>
-  </div>
-</section>
 <section class="pane" id="p-std">
   <div class="card">
     <h2>취약근로자 관리 기준 <small>숫자 기준은 바꿀 수 있어요</small></h2>
@@ -2056,38 +2034,6 @@ $('#xlsxIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!
   if(!confirm(`엑셀 내용을 반영할까요?\n\n· 새 근로자 ${add}명 추가\n· 기존 근로자 ${upd}명 갱신\n· 건강상담 기록 ${lg}건 추가\n\n엑셀에 없는 근로자는 그대로 둬요.`))return;
   W=NW;save();cur=null;setClean();render();jCount();toast(`엑셀 반영 완료 · 추가 ${add} · 갱신 ${upd} · 기록 ${lg}`)};
 
-/* ---------- 위치 보내기(SOS) 설정 ---------- */
-const SOSK='hl_sos_cfg';
-function sosCfg(){const c=LS.get(SOSK,{})||{};return {to:c.to||'010-8978-8349',n:c.n||'보건관리자 이나리',s:c.s||(window.SiteGeo?SiteGeo.Store.get().site_name:'')}}
-function sosLink(c){const d=String(c.to).replace(/\D/g,'');if(!/^0\d{8,10}$/.test(d))return '';const u=new URL('sos.html',location.href);u.search='';u.hash='';u.searchParams.set('to',d);if(c.n||c.s){const b=new TextEncoder().encode(JSON.stringify({n:c.n||'',s:c.s||''}));let bin='';b.forEach(x=>bin+=String.fromCharCode(x));u.searchParams.set('d',btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''))}return u.href}
-function qrSvg(text){if(!window.QRLib)return '';const q=QRLib.make(text,'M'),n=q.getModuleCount(),z=4,N=n+z*2;let p='';for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))p+=`M${c+z} ${r+z}h1v1h-1z`;
-  return `<svg viewBox="0 0 ${N} ${N}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="위치 보내기 QR코드" shape-rendering="crispEdges"><rect width="${N}" height="${N}" fill="#fff"/><path d="${p}" fill="#000"/></svg>`}
-const telFmt=t=>String(t).replace(/\D/g,'').replace(/^(\d{3})(\d{3,4})(\d{4})$/,'$1-$2-$3');
-function sosRender(){const c=sosCfg(),L=sosLink(c),o=$('#sosOut');
-  if(!L){o.innerHTML=`<p class="muted" style="margin:0">${c.to?'휴대폰 번호를 다시 확인해 주세요 (예: 010-1234-5678).':'위치를 받을 휴대폰 번호를 넣으면 근로자용 링크와 QR코드가 만들어져요.'}</p>`;return}
-  o.innerHTML=`<div class="sosqr">${qrSvg(L)}<div class="lk"><b>근로자용 링크</b><code>${esc(L)}</code>
-    <div class="row"><button class="btn" type="button" id="sosCopy">링크 복사</button>${navigator.share?'<button class="btn ghost" type="button" id="sosShare">문자·카톡으로 보내기</button>':''}<a class="btn ghost" href="${esc(L)}" target="_blank" rel="noopener" style="text-decoration:none">근로자 화면 미리보기</a></div>
-    <div class="row"><button class="btn gold" type="button" id="sosPoster">QR 안내문 인쇄</button><button class="btn gold" type="button" id="sosPaper">종이 동의서 인쇄</button></div></div></div>`;
-  $('#sosCopy').onclick=async()=>{try{await navigator.clipboard.writeText(L);toast('링크를 복사했어요')}catch(e){prompt('아래 링크를 복사하세요',L)}};
-  if($('#sosShare'))$('#sosShare').onclick=()=>navigator.share({title:'위치 보내기(SOS)',text:`[${c.s||'현장'}] 몸이 안 좋거나 도움이 필요할 때 이 링크를 열어 [도움 요청]을 누르세요.`,url:L}).catch(()=>{});
-  $('#sosPoster').onclick=()=>sosPrint('poster');$('#sosPaper').onclick=()=>sosPrint('paper')}
-function sosPrint(kind){const c=sosCfg(),L=sosLink(c);if(!L)return;const who=`${esc(c.n||'보건관리자')} ${esc(telFmt(c.to))}`;
-  $('#reqDoc').innerHTML=kind==='poster'?`<div class="poster"><h1>몸이 안 좋거나<br>도움이 필요할 때</h1><p class="sub">휴대폰 카메라로 QR코드를 찍으세요</p>${qrSvg(L)}
-    <ol><li>휴대폰 <b>카메라</b>로 QR코드를 찍어요.</li><li>처음 한 번만 <b>동의</b>해요. (동의하지 않아도 불이익은 없어요)</li><li><b>🆘 도움 요청</b>을 누르고, 문자 앱에서 <b>[보내기]</b>를 눌러요.</li><li>보건관리자가 위치를 보고 바로 찾아가요.</li></ol>
-    <div class="em">위급하면 바로 119에 전화하세요</div><div class="ft">${esc(c.s||'')} · 받는 사람: ${who}<br>위치는 버튼을 누를 때만 그 순간 한 번 보내지고, 사이트에는 저장되지 않아요.</div></div>`
-  :`<div class="cform"><h1>위치 보내기(SOS) 서비스 동의서</h1><table>
-    <tr><th>현장</th><td>${esc(c.s||'')}</td></tr>
-    <tr><th>목적</th><td>몸이 안 좋거나 도움이 필요할 때, 보건관리자가 빨리 찾아가 돕기 위함</td></tr>
-    <tr><th>보내는 정보</th><td>이름, 협력사, 버튼을 누른 순간의 위치(지도 링크)와 시각</td></tr>
-    <tr><th>보내는 때</th><td>근로자 본인이 버튼을 누를 때만 (자동으로 계속 위치를 확인하지 않음)</td></tr>
-    <tr><th>받는 사람</th><td>${who}</td></tr>
-    <tr><th>보관 기간</th><td>사이트에는 저장하지 않음. 받은 문자는 취약근로자 관리 종료(투입 종료) 시 삭제</td></tr>
-    <tr><th>거부·철회</th><td>동의를 거부할 수 있으며, 거부해도 불이익이 없음. 동의 후에도 언제든 철회할 수 있음</td></tr></table>
-    <p style="font-size:11pt;margin:7mm 0 0">위 내용을 충분히 설명 듣고 이해했으며, 위치 보내기 서비스 이용에 &nbsp; □ 동의합니다 &nbsp; □ 동의하지 않습니다.</p>
-    <div class="sg"><div><span>날짜 : &nbsp;&nbsp;&nbsp;&nbsp;년 &nbsp;&nbsp;&nbsp;월 &nbsp;&nbsp;&nbsp;일</span></div><div><span>협력사 : ______________</span><span>성명 : ______________ (서명)</span></div><div><span>설명한 사람 : ______________ (서명)</span></div></div></div>`;
-  document.body.classList.add('req');pageSize('portrait');setTimeout(()=>window.print(),80)}
-{const c=sosCfg();$('#sosTo').value=c.to;$('#sosN').value=c.n;$('#sosS').value=c.s;
- ['sosTo','sosN','sosS'].forEach(id=>$('#'+id).oninput=()=>{LS.set(SOSK,{to:$('#sosTo').value.trim(),n:$('#sosN').value.trim(),s:$('#sosS').value.trim()});sosRender()});sosRender()}
 fillCf();render();jCount();
 
 function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
