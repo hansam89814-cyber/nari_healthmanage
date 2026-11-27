@@ -192,6 +192,7 @@ body{background:#f8fafb}
 .form{border:1px solid #e5e7eb}
 .form h3{color:#111827}
 .small-btn.pri{background:#111827;color:#fff;border-color:#111827}
+@media print{body.printCounsel .page:not(.counsel-sheet):not(.photo-sheet),body.printPhoto .page:not(.photo-sheet),body.printAnalysis .counsel-sheet,body.printAnalysis .photo-sheet{display:none!important}}
 </style></head><body>
 <header class="sitehd"><div class="in"><a class="brand" href="index.html">보건관리 페이지</a><nav aria-label="메뉴"><a href="health.html">보건일지</a><a href="edu.html">교육일지</a><a href="warning.html">경고표지</a><a href="msds.html">MSDS 대장</a><a href="aftercare.html" class="on" aria-current="page">사후관리</a><a href="vuln.html">취약근로자</a><a href="risk.html">위험성평가</a><a href="weather.html">기상 모니터</a><a href="rules.html">보건기준</a><a href="sos-location.html">SOS 위치 확인</a></nav></div></header>
 
@@ -204,7 +205,7 @@ body{background:#f8fafb}
   <button onclick="workers.push(...demo());cur=workers.length-3;save();fillSel();renderForm();renderPages()">예시 불러오기</button>
   <button onclick="exportJSON()">백업 저장</button>
   <label class="btn">백업 불러오기<input type="file" accept=".json" hidden onchange="importJSON(this)"></label>
-  <button class="pri" onclick="window.print()">인쇄 / PDF 저장</button>
+  <button class="pri" onclick="window.print()">인쇄 / PDF 저장</button><button onclick="printChoice('counsel')">출력(건강상담일지)</button><button onclick="printChoice('photo')">출력(사진대지)</button><button onclick="printChoice('analysis')">출력(분석표)</button>
 </div>
 
 <div class="wrap">
@@ -309,7 +310,7 @@ const HZ = {
   law:'크롬과 그 화합물은 특수건강진단 대상 유해인자',
   ppe:'mask',point:'스테인리스 용접 시 국소배기와 방진마스크(특급/1급) 착용, 코 점막·피부 증상을 확인합니다.'}
 };
-const PPE_ITEM={mask:'방진마스크(특급/1급)',earplug:'귀마개(폼)',glove:'진동방지장갑',goggles:'자외선 차단 보안경',gasmask:'방독마스크·정화통(유기화합물용)',chemglove:'내알칼리 장갑·장화',suit:'일회용 전신 보호복',helmet:'용접 보안면·용접장갑',airline:'송기마스크',cold:'방한복·방한장갑',heat:'쿨토시·냉각조끼'};
+const PPE_ITEM={mask:'방진마스크',earplug:'귀마개',glove:'진동방지장갑',goggles:'자외선 차단 보안경',gasmask:'방독마스크·정화통(유기화합물용)',chemglove:'내알칼리 장갑·장화',suit:'일회용 전신 보호복',helmet:'용접 보안면·용접장갑',airline:'송기마스크',cold:'방한복·방한장갑',heat:'쿨토시·냉각조끼'};
 const EDU_TEXT='본인은 위 직업성 질환의 예방법과 보호구 착용법·관리 요령에 대해 교육을 받았으며, 아래 보호구를 수령하였습니다. 작업 중 보호구를 올바르게 착용하겠습니다.';
 const GRADE={A:'정상',C1:'직업병 요관찰자',C2:'일반질병 요관찰자',D1:'직업병 유소견자',D2:'일반질병 유소견자',CN:'야간작업 요관찰자',DN:'야간작업 유소견자',R:'2차 건강진단 대상',U:'판정 불가'};
 const RANK={D1:6,DN:6,C1:5,CN:5,D2:4,C2:3,R:2,U:1,A:0};
@@ -548,7 +549,7 @@ const blank=()=>({id:Date.now()+''+Math.random().toString(36).slice(2,6),
  overall:'',fitness:'',mainFinding:'',nextDate:'',smoking:'',
  bpS:'',bpD:'',height:'',weight:'',gripL:'',gripR:'',fvc:'',fev1:'',fvcPct:'',fev1Pct:'',ratio:'',spiro:'',cxr:'',
  hearL:['','','','','',''],hearR:['','','','','',''],other:'',
- factors:[],consultDate:'',counselor:'',place:'',consultNote:'',photos:[],pend:false,pendDate:'',pendClinic:'',pendDue:'',printConf:false,preSign:false,preSignDate:'',preHow:'대면',eduDate:'',educator:'',eduText:'',ppeGive:[]});
+ factors:[],consultDate:'',counselor:'보건관리자 이나리',place:'',consultNote:'',photos:[],pend:false,pendDate:'',pendClinic:'',pendDue:'',printConf:false,preSign:false,preSignDate:'',preHow:'대면',eduDate:'',educator:'',eduText:'',ppeGive:[]});
 const demo=()=>[
  Object.assign(blank(),{name:'예시 근로자1',age:'60',empno:'',company:'○○건설 △△현장',dept:'할석',examType:'배치전',examDate:'2024-12-20',clinic:'○○병원',doctor:'○○○',joinDate:'2024-12-20',hours:'8',
   overall:'C2',fitness:'나',mainFinding:'경증 제한성 환기장애',nextDate:'2025-12-20',smoking:'확인 필요',
@@ -596,13 +597,13 @@ function renderForm(){const w=W();
  <h3>② 검진 정보</h3>
  <div class="row three">${fld('examType','검진 종류','',['배치전','일반','특수','수시'])}${fld('examDate','검진일','date')}${fld('joinDate','입사일','date')}</div>
  <div class="row">${fld('clinic','검진기관')}${fld('doctor','검진의사')}</div>
- <div class="row three">${fld('overall','종합판정','',['','A','C1','C2','D1','D2','CN','DN','R','U'])}${fld('fitness','업무적합','',['','가','나','다','라'])}${fld('nextDate','다음 추적검사일','date')}</div>
+ <div class="row three">${fld('overall','종합판정','',['','A','B','C1','C2','D1','D2','CN','DN','R','U'])}${fld('fitness','업무적합','',['','가','나','다','라'])}${fld('nextDate','다음 추적검사일','date')}</div>
  <div class="row">${fld('mainFinding','주요 소견')}${fld('smoking','흡연','',['','비흡연','흡연','과거흡연','확인 필요'])}</div>
- <h3>③ 유해인자별 판정</h3>
+ <div class="row">${fld('followDetail','추적검사 항목 및 일자','area')}${fld('regularDate','다음 정기검진일','date')}</div><h3>③ 유해인자별 판정</h3>
  <div id="hzList">${w.factors.map((f,i)=>`<div class="hz">
    <div class="row"><div class="f"><label>유해인자 분류</label><select data-hz="${i}" data-hk="key">${hzOpts.replace(`value="${f.key}"`,`value="${f.key}" selected`)}</select></div>
    <div class="f"><label>결과지 표기명</label><input data-hz="${i}" data-hk="label" value="${esc(f.label)}"></div></div>
-   <div class="row three"><div class="f"><label>판정</label><select data-hz="${i}" data-hk="grade">${['A','C1','C2','D1','D2','CN','DN','R','U'].map(g=>`<option ${g==f.grade?'selected':''}>${g}</option>`).join('')}</select></div>
+   <div class="row three"><div class="f"><label>판정</label><select data-hz="${i}" data-hk="grade">${['A','B','C1','C2','D1','D2','CN','DN','R','U'].map(g=>`<option ${g==f.grade?'selected':''}>${g}</option>`).join('')}</select></div>
    <div class="f" style="grid-column:span 2"><label>검진소견</label><input data-hz="${i}" data-hk="finding" value="${esc(f.finding)}"></div></div>
    <div class="row" style="grid-template-columns:1fr auto"><div class="f"><label>사후관리조치</label><input data-hz="${i}" data-hk="action" value="${esc(f.action)}"></div>
    <button class="small-btn" style="align-self:end" onclick="rmHz(${i})">삭제</button></div></div>`).join('')}</div>
@@ -624,11 +625,11 @@ function renderForm(){const w=W();
  <div class="hint">보호구명은 이상 소견에 해당하는 보호구로 자동으로 채워집니다. 수량을 비우면 출력물에 손으로 쓸 수 있습니다.</div>
  ${giveList(w).map((g,i)=>`<div class="row" style="grid-template-columns:1fr 70px auto;align-items:end"><div class="f"><label>보호구명</label><input data-give="${i}" data-gk="name" value="${esc(g.name)}"></div><div class="f"><label>수량</label><input data-give="${i}" data-gk="qty" value="${esc(g.qty)}"></div><button class="small-btn" onclick="rmGive(${i})">삭제</button></div>`).join('')}
  <button class="small-btn" onclick="addGive()">+ 보호구 추가</button> <button class="small-btn" onclick="resetGive()">해당 보호구로 다시 채우기</button>
- <h3>⑤ 상담 기록 · 사진 (3쪽)</h3>
- <div class="row three">${fld('consultDate','상담일','date')}${fld('counselor','상담자')}${fld('place','장소')}</div>
+ <h3>취약근로자 연동 및 첨부서류 분석</h3><button class="small-btn" onclick="importVuln()">취약근로자에서 불러오기</button> <button class="small-btn" onclick="exportVuln()">취약근로자로 보내기</button><div class="row one">${fld('workOpinion','의사소견 확인 (관리자 직접 입력)','area')}</div>${['pre','gen','op'].map((k,i)=>`<div class="f"><label>${['배치전 건강진단','일반건강진단','의사소견서'][i]}</label><input type="file" accept="application/pdf,image/*" multiple onchange="readLinked(this,'${k}')"></div>`).join('')}<div>${(w.linkDocs||[]).map((d,i)=>`<div class="hz"><b>${esc(d.name)}</b> · ${esc(d.status)}<details><summary>추출 원문 확인</summary><pre style="white-space:pre-wrap;max-height:180px;overflow:auto">${esc(d.text||'')}</pre></details><button class="small-btn" onclick="reviewLinked(${i})">검진 항목 검수</button></div>`).join('')}</div><h3>건강상담일지 기본문진</h3><div class="row">${fld('birthDate','생년월일','date')}${fld('career','현 작업 총 경력')}</div>${['과거력','수술력','약물력','알러지','음주','흡연','운동'].map((v,i)=>`<div class="row one">${fld('history'+i,v)}</div>`).join('')}<div class="row">${fld('counselDone','건강상담 완료','',['','예','아니오'])}${fld('ppeDone','보호구 지급 및 착용지도 완료','',['','예','아니오'])}</div><div class="row one">${fld('counselTopics','실시 상담 항목 코드 (B22 소음, E22 분진, H22 진동, B23 혈압, E23 당뇨, H23 근골격, B24 간장, E24 지질, H24 계절)','text')}</div><h3>⑤ 상담 기록 · 사진</h3><div class="row one">${fld('extraCounsel','추가 상담내용','area')}${fld('seasonOverride','계절별 취약사항 수정 (빈칸이면 자동)','area')}</div><div class="row">${fld('reconsultDate','재상담 예정일','date')}${fld('careStatus','사후관리 상태','',['','지속관리','조치완료','의료기관 방문 예정'])}</div>
+ <div class="row three">${fld('consultDate','상담일','date')}<div class="f"><label>상담자</label><input value="보건관리자 이나리" readonly></div>${fld('place','장소')}</div>
  <div class="row one">${fld('consultNote','상담 내용 및 조치','area')}</div>
  <div class="photos-in">${w.photos.map((p,i)=>`<div class="ph"><img src="${p.src}"><input data-ph="${i}" placeholder="사진 설명" value="${esc(p.cap)}" style="width:100%;margin-top:3px;font-size:12px"><button class="small-btn" onclick="rmPhoto(${i})" style="margin-top:3px">삭제</button></div>`).join('')}</div>
- ${w.photos.length<4?`<label class="small-btn" style="display:inline-block;margin-top:6px">+ 상담 사진 추가 (최대 4장)<input type="file" accept="image/*" multiple hidden onchange="addPhotos(this)"></label>`:''}
+ ${w.photos.length<2?`<label class="small-btn" style="display:inline-block;margin-top:6px">+ 상담 사진 추가 (최대 2장)<input type="file" accept="image/*" multiple hidden onchange="addPhotos(this)"></label>`:''}
  <p class="hint">사진·결과는 이 기기 브라우저에만 저장되며 외부로 전송되지 않습니다. 정기적으로 [백업 저장]을 하세요.</p>`;
 }
 document.addEventListener('input',e=>{const t=e.target,w=W();if(!w)return;
@@ -644,14 +645,14 @@ document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'&&e.target.
 function addHz(){W().factors.push({key:'dust',label:'',grade:'A',finding:'정상',action:'필요없음'});save();renderForm();renderPages()}
 function rmHz(i){W().factors.splice(i,1);save();renderForm();renderPages()}
 function rmPhoto(i){W().photos.splice(i,1);save();renderForm();renderPages()}
-function addPhotos(inp){const files=[...inp.files].slice(0,4-W().photos.length);let n=files.length;if(!n)return;
+function addPhotos(inp){const files=[...inp.files].slice(0,Math.max(0,2-W().photos.length));let n=files.length;if(!n)return;
  files.forEach(f=>{const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const m=1200,s=Math.min(1,m/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=img.width*s;c.height=img.height*s;c.getContext('2d').drawImage(img,0,0,c.width,c.height);W().photos.push({src:c.toDataURL('image/jpeg',.75),cap:''});if(--n===0){save();renderForm();renderPages()}};img.src=r.result};r.readAsDataURL(f)})}
 
 /* ===================== 출력 페이지 ===================== */
 const tagc=g=>g==='A'?'tA':/^C/.test(g)?'tC':/^D/.test(g)?'tD':'tX';
 const boxc=g=>!g?'':g==='A'?'ok':/^D/.test(g)?'bad':'warn';
 const sorted=w=>[...w.factors].sort((a,b)=>(RANK[b.grade]||0)-(RANK[a.grade]||0));
-function worst(w){return w.overall||sorted(w)[0]?.grade||''}
+function worst(w){return w.overall||''}
 function dday(d){if(!d)return null;const t=new Date();t.setHours(0,0,0,0);return Math.round((new Date(d)-t)/864e5)}
 function head(w,title,sub){return `<div class="ph1"><div><h1>${title}</h1><div class="sub">${sub}</div></div><div class="sub" style="text-align:right">${esc(w.name)||'(성명)'} · ${esc(w.dept)}<br>검진일 ${esc(w.examDate)} · ${esc(w.clinic)}</div></div>`}
 function foot(n){return `<div class="foot"><span>※ 결과지에서 정리한 내용입니다. 원본과 대조 후 사용하세요.</span><span>${n} / 3</span></div>`}
@@ -715,7 +716,7 @@ function page1(w){const g=worst(w),d=dday(w.nextDate),bmi=num(w.height)&&num(w.w
  ${foot(1)}</div>`}
 
 
-function defGive(w){return [...new Set(w.factors.filter(f=>f.grade!=='A').map(f=>HZ[f.key].ppe))].filter(k=>PPE_ITEM[k]).map(k=>({name:PPE_ITEM[k],qty:''}))}
+function defGive(w){return [...new Set(w.factors.filter(f=>['C1','C2','CN','D1','D2','DN'].includes(f.grade)).map(f=>HZ[f.key].ppe))].filter(k=>PPE_ITEM[k]).map(k=>({name:PPE_ITEM[k],qty:''}))}
 function giveList(w){if(!w.ppeGive||!w.ppeGive.length)w.ppeGive=defGive(w);return w.ppeGive}
 function addGive(){giveList(W()).push({name:'',qty:''});save();renderForm();renderPages()}
 function rmGive(i){W().ppeGive.splice(i,1);if(!W().ppeGive.length)W().ppeGive=[{name:'',qty:''}];save();renderForm();renderPages()}
@@ -744,17 +745,14 @@ function page2(w){const fs=sorted(w).filter(f=>f.grade!=='A').slice(0,6);
 function fitPage2(){const el=document.querySelector('.p2');if(!el)return;
  for(const c of ['tight1','tight2','tight3','tight4','tight5']){if(el.scrollHeight<=el.clientHeight+1)break;el.classList.add(c)}}
 
-function page3(w){const ph=w.photos,cls=ph.length===1?'one':ph.length===2?'two':'';
- const boxes=(ph.length?ph:[{},{},{},{}]).map(p=>`<div class="pbox"><div class="im">${p.src?`<img src="${p.src}">`:'<span class="empty">사진 첨부</span>'}</div><div class="cap">${esc(p.cap||'')}</div></div>`).join('');
- return `<div class="page">${head(w,'근로자 건강상담 기록','사후관리 상담 사진 첨부')}
- <table><tr><th>상담일</th><td>${esc(w.consultDate)}</td><th>상담자</th><td>${esc(w.counselor)}</td><th>장소</th><td>${esc(w.place)}</td></tr>
- <tr><th>대상자</th><td>${esc(w.name)}</td><th>부서</th><td>${esc(w.dept)}</td><th>판정</th><td>${worst(w)} ${GRADE[worst(w)]?'('+GRADE[worst(w)]+')':''}</td></tr></table>
- <div class="sec">상담 사진</div><div class="pgrid ${cls}">${boxes}</div>
- <div class="sec">상담 내용 및 조치</div><div class="notebox">${esc(w.consultNote)}</div>
- <table style="margin-top:8px"><tr><th style="width:18%">근로자 확인</th><td style="height:12mm;text-align:right;padding-right:5mm">${w.pend&&w.preSign?`사전 서명 동의서로 갈음 (${esc(w.preSignDate)})`:'(서명)'}</td><th style="width:18%">상담자 확인</th><td style="text-align:right;padding-right:5mm">(서명)</td></tr></table>${w.pend&&w.preSign?`<div class="mini" style="margin-top:3px">※ 근로자 확인: 결과 확인 전 사전 서명(${esc(w.preSignDate)}, 사전 서명 동의서 별첨) · 결과 안내: ${esc(w.consultDate)||'____년 __월 __일'} ${esc(w.preHow)}</div>`:''}
- ${foot(3)}</div>`}
+function page3(w){return `<div class="page photo-sheet"><h1 style="text-align:center;letter-spacing:4px;font-size:24pt;margin:0 0 8mm">건강상담 사진대지</h1>${[0,1].map(i=>`<div style="border:1px solid #333;margin-bottom:5mm"><div style="background:#e1e5eb;text-align:center;font-weight:bold;padding:2mm">사진 ${i+1}</div><div style="height:105mm;display:flex;align-items:center;justify-content:center;overflow:hidden">${w.photos[i]?.src?`<img style="width:100%;height:100%;object-fit:contain" src="${esc(w.photos[i].src)}">`:''}</div></div>`).join('')}<div style="text-align:center;font-weight:bold;border-top:1px solid #333;padding-top:3mm">평택동부고속화도로 민간투자사업 1공구</div></div>`}
+function seasonal(w){const m=Number((w.consultDate||'').slice(5,7));if(!m)return '상담일자 입력 필요';return m>=11||m<=2?'혹한기: 한랭질환 예방, 방한용품 착용, 심뇌혈관질환 초기증상 및 응급조치':m<=5?'봄철: 황사·미세먼지 및 일교차 건강관리':m<=9?'혹서기: 온열질환 예방, 수분 섭취 및 휴식':'가을철: 일교차 및 심뇌혈관질환 예방';}
+const COUNSEL_TEXT={"A1": "건  강  상  담  일  지", "E1": "□ 고령근로자\n□ 부적격근로자 ( 고혈압 / 당뇨 / 기타 [                         ])\n□ 채용시 고혈압 / 저혈압\n□ 사후관리 ( 배치전 / 배치후 / 특수 / 일반 )\n□ 보호구지급\n□ 기타", "J1": "상 담 자", "A3": "상담일자 :", "A4": "대상자\n정보", "B4": "성     명", "F4": "업 체 명", "B5": "생년월일", "F5": "직    종", "B6": "입 사 일", "F6": "현 작업 총 경력", "H6": "  년                   개월", "A7": "기본\n문진", "B7": "과 거 력", "D7": " □ 없음   □ 혈압   □ 당뇨   □ 고지혈증   □ 간장질환   □ 심혈관계질환 (                      )  □  결핵  \n □ 기타질환(                                               )", "B8": "수 술 력", "D8": " □ 없음    □ 있음  (                                                                                   )", "B9": "약 물 력", "D9": " □ 없음  □복용중  (복용약:                            복용기간:                                    )", "B10": "알 러 지", "D10": " □ 없음  □ 있음  (                                                    )", "B11": "음    주", "D11": " □ 없음   □ 주1회 이하   □ 주 1~2회   □ 주2~3회   □ 주4회 이상\n 한번 마실 때 : □ 1~2잔   □ 1병 이하   □ 1~2병   □ 3병 이상             ", "I11": "종\n류", "B12": "흡    연", "D12": " □ 과거흡연   (흡연기간 :        년)   □ 아니오   □ 예   (            갑/일, 총 흡연기간 :        년)  ", "B13": "운    동", "D13": " □ 없음   □ 1~2회   □ 3회 이상 (운동종류 :                              )", "A14": "건강\n진단\n결과", "B14": "판정/\n업무수행적합여부", "D14": " □ A   □ B   □ C1   □ C2   □ CN   □ D1   □ D2   □ DN    □ R", "I14": "□ 가    □ 나    □ 다    □ 라", "B15": "유해인자별 \n건강구분", "D15": " □ C1(                     )   □ C2(                     )   □ CN(                     ) ", "D16": " □ D1(                     )   □ D2(                     )   □ DN(                     )  □ R(                     ) ", "A17": "사후\n관리\n조치", "B17": " □ 1. 건강상담", "E17": "□ 4. 근무중 치료", "H17": "채용 시 혈압용지 부착", "B18": " □ 2. 보호구지급 및 착용지도", "E18": "□ 5. 근로시간 단축", "B19": "   - 보호구명 : ", "E19": "□ 6. 작업전환", "B20": "   - 성명 :                   (성명)", "E20": "□ 7. 근로제한 및 금지", "B21": " □ 3. 추적검사 필요\n       - 검사항목 : \n       - 다음추적검사일 :", "E21": "□ 8. 직업병 확진의뢰 안내\n     - 의뢰 기관명 :", "A22": "상담\n내용", "B22": "□ 소음성난청, 청력질환 \n - 난청의 종류 및 권장관리주기\n - 소음이 인체에  미치는 영향\n - 소음성 난청 증상 및 예방방법\n - 작업의 소음 수준과 소음 노출 기준치\n - 청력보호구 종류, 착용방법 및 주의사항\n - 산업보건 및 직업병 예방에 관한 사항\n - 작업장소 소음 수준", "E22": "□ 기타광물성분진, 호흡기계 질환\n - 분진의 유해성과 노출경로\n - 작업장 및 개인위생 관리, 환기 방법\n - 호흡용 보호구의 사용 방법\n - 폐 질환의 종류\n - 분진에 관련된 질병 예방 방법\n - 분진에 관련된 질병 예방 방법 \n - 유산소 운동방법(달리기, 계단오르기, \n   빠르게 걷기, 자전거, 필라테스호흡)\n - 기타(흡연이 미치는 영향, 금연교육 등)", "H22": "□ 진동기계, 기구 작업과 관련된 건강장해\n - 저진동형 기계공구 사용, 진동방지 장갑 등 사용\n - 충분한 휴식시간 갖기\n - 진동에 의한 건강장해 초기증상(손가락 감각이상, \n   악력저하, 피부색상의 변화, 통증 등)에 대해 설명\n - 진동으로 인한 건강장해의 종류\n   (진동증후군-통증,손발저림/근골격계질환-통증,손상/   \n   레이노드증후군-조직손상)에 대해 설명\n - 진동 작업 안전수칙(보호구착용, 진동장해 예방법 숙지, \n   작업 시 균형잡힌 자세 유지) 교육", "B23": "□ 고혈압\n - 혈압약 꾸준히 복용(임의중단 하지않기)\n - 저염식 실천(국물, 젓갈, 라면, 가공식품\n   등 섭취 자제)\n - 규칙적인 운동 실천\n - 체중 관리\n - 금연 및 절주\n - 정기적으로 혈압 측정\n", "E23": "□ 당뇨\n - 혈당약 및 인슐린 규칙적으로 사용\n - 식사 조절(과식, 당분이 많은 음식주의)\n - 규칙적인 운동 실천\n - 저혈당 증상 알기(식은땀, 손떨림, 어지러움)\n - 발 및 말초 관리 철저히 하기\n - 정기적 혈당 측정하기(공복시, 식후 2시간, \n   당화혈색소 등 기록하기)\n ", "H23": "□ 근골격계질환\n - 중량물 취급 5kg 이상\n - 작업 전, 중, 후 꾸준히 스트레칭\n - 휴식시간 준수\n - 근골격계 부담작업 제한(중량물 제한, 중량물 표시)\n - 올바른 작업자세 교육\n - 근골격계질환 예방을 위한 운동 및 체조 설명\n - 근골격계 대표적 질환 설명", "B24": "□ 간장질환\n - 간질환의 원인 및 증상\n - 주기적 내과 진찰을 통해 추적관리 \n   (기존 간장질환으로 치료 받는 환자는 \n   6개월 마다 검진 받도록 권유) \n - 간염 검사, 예방접종\n - 금주, 금연, 불필요하거나 과다 및 남용\n   약물복용 금지\n - 피로 및 기초체력 관리", "E24": "□ 이상지질혈증\n - 이상지질혈증약 꾸준히 복용(임의중단 하지않기)\n - 식사 조절(콜레스테롤/포화지방이 많은 음식주의)\n - 규칙적인 운동 실천(중등도의 유산소 운동 주5회)\n - 체중 조절(BMI 23미만)\n - 금연(흡연은 이상지질혈증의 직접적인 위험인자임)\n - 가급적 금주\n", "H24": "                      추가상담내용\n- 혹서기 온열질환 예방교육\n- 온열질환 발생 메커니즘 및 전해질 보충방법\n- 식염정 복용방법 및 복용 시 주의사항\n- 혹한기 한랭질환(저체온증, 동상 등) 예방수칙 안내\n- 방한복, 방한장갑 등 개인 방한용품 착용 지도\n- 심뇌혈관질환 초기 증상 및 응급조치 방법 안내", "A25": " 근로자 본인은 건강관리의 이유로 개인정보(소속, 성명, 개인건강상태, 건강검진결과 등) 수집·이용(보유기한 : 5년)에 \n관하여 동의하며 당 현장의 건강상담 외에 개인 스스로 건강관리를 철저히 할 것을 서명합니다.\n\n                                                   근로자 이름                               (서명)                        평택동부고속화도로 민간투자사업 1공구"};
 
-function renderPages(){const w=W();const sc=document.getElementById('scaler');const t=sc.style.transform;sc.style.transform='none';document.getElementById('pages').innerHTML=w?page1(w)+page2(w)+page3(w)+prePage(w)+scanPages(w)+confPages(w):'';fitPage2();sc.style.transform=t;fit()}
+function counselForm(w){const T=COUNSEL_TEXT;const chk=(v)=>v?'☑':'□';const e=esc;const line=(k)=>e(w[k]||'');const groups=['C1','C2','CN','D1','D2','DN','R'];const g=(k)=>{const fs=w.factors.filter(f=>f.grade===k);return chk(fs.length)+' '+k+' ('+fs.map(f=>e(f.label+': '+f.finding)).join(' / ')+')'};const c=(k)=>e(T[k]).replace(/\n/g,'<br>');const topic=(k)=>(k==='H24'?'□ 계절별 취약사항<br>'+e(w.seasonOverride||seasonal(w)):c(k)).replace('□',chk((w.counselTopics||'').split(',').map(x=>x.trim()).includes(k)));const ppe=giveList(w).map(x=>x.name).filter(Boolean).join(', ');
+return `<div class="page counsel-sheet"><table style="width:100%;table-layout:fixed;border-collapse:collapse;font-family:Malgun Gothic,맑은 고딕,sans-serif;font-size:9px;line-height:1.3"><colgroup>${Array.from({length:10},()=>'<col style="width:10%">').join('')}</colgroup><tr><th colspan="4" style="font-size:21px">건 강 상 담 일 지</th><td colspan="5" rowspan="2" style="white-space:pre-line">${c('E1')}</td><th>상담자</th></tr><tr><td colspan="4">상담일자 : ${line('consultDate')}</td><td>보건관리자 이나리</td></tr><tr><th rowspan="3">대상자 정보</th><th colspan="2">성명</th><td colspan="2">${line('name')}</td><th colspan="2">업체명</th><td colspan="3">${line('company')}</td></tr><tr><th colspan="2">생년월일</th><td colspan="2">${line('birthDate')}</td><th colspan="2">직종</th><td colspan="3">${line('dept')}</td></tr><tr><th colspan="2">입사일</th><td colspan="2">${line('joinDate')}</td><th colspan="2">현 작업 총 경력</th><td colspan="3">${line('career')}</td></tr>${['과거력','수술력','약물력','알러지','음주','흡연','운동'].map((v,i)=>`<tr>${i===0?'<th rowspan="7">기본문진</th>':''}<th colspan="2">${v}</th><td colspan="7">${line('history'+i)||c('D'+(i+7))}</td></tr>`).join('')}<tr><th rowspan="3">건강진단 결과</th><th colspan="2">판정 / 업무수행적합여부</th><td colspan="5">${['A','B','C1','C2','CN','D1','D2','DN','R'].map(x=>chk(w.overall===x)+' '+x).join(' ')}</td><td colspan="2">${['가','나','다','라'].map(x=>chk(w.fitness===x)+' '+x).join(' ')}</td></tr><tr><th colspan="2" rowspan="2">유해인자별 건강구분</th><td colspan="7">${groups.slice(0,3).map(g).join('<br>')}</td></tr><tr><td colspan="7">${groups.slice(3).map(g).join('<br>')}</td></tr><tr><th>사후관리 조치</th><td colspan="3">${chk(w.counselDone==='예')} 1. 건강상담<br>${chk(w.ppeDone==='예')} 2. 보호구지급 및 착용지도<br> - 보호구명 : ${e(ppe)}<br> - 성명 : ${line('name')}<br>${chk(!!w.followDetail)} 3. 추적검사 필요<br> - 검사항목 및 다음추적검사일 : ${line('followDetail')}</td><td colspan="3">${['E17','E18','E19','E20','E21'].map(c).join('<br>')}</td><td colspan="3" style="vertical-align:top;height:95px;text-align:center"><b>추가 상담내용</b><br>${line('extraCounsel').replace(/\n/g,'<br>')}</td></tr>${[22,23,24].map((n,i)=>`<tr>${i===0?'<th rowspan="3">상담내용</th>':''}${['B','E','H'].map(k=>`<td colspan="3" style="vertical-align:top;font-size:8px;white-space:normal">${topic(k+n)}</td>`).join('')}</tr>`).join('')}<tr><th colspan="2">첨부서류 확인</th><td colspan="8">${['pre','gen','op'].map((k,i)=>chk((w.linkDocs||[]).some(d=>d.kind===k))+ ' '+['배치전 건강진단 결과지','일반건강진단 결과지','의사소견서'][i]).join('　')}</td></tr><tr><th colspan="2">근로 가능 소견</th><td colspan="8">${line('workOpinion')||'미확인'}</td></tr><tr><th colspan="2">상담결과 및 향후 관리계획</th><td colspan="8">${line('consultNote')}<br>재상담 예정일: ${line('reconsultDate')}　${line('careStatus')}</td></tr><tr><td colspan="10" style="white-space:pre-line">${c('A25')}</td></tr></table></div>`;}
+
+function renderPages(){const w=W();const sc=document.getElementById('scaler');const t=sc.style.transform;sc.style.transform='none';document.getElementById('pages').innerHTML=w?counselForm(w)+page3(w)+page1(w)+page2(w)+prePage(w)+scanPages(w)+confPages(w):'';fitPage2();sc.style.transform=t;fit()}
 function fit(){const pv=document.querySelector('.preview'),sc=document.getElementById('scaler'),pw=794;const s=Math.min(1,(pv.clientWidth-4)/pw);sc.style.transform=`scale(${s})`;sc.style.width=pw+'px';sc.style.height=(document.getElementById('pages').scrollHeight*s)+'px'}
 window.addEventListener('resize',fit);
 
@@ -791,11 +789,11 @@ async function smoothRender(job,g){const Ps=[window.CanvasRenderingContext2D,win
   Ps.forEach((P,i)=>{if(saved[i])Object.defineProperty(P,'imageSmoothingEnabled',{configurable:true,get(){return true},set(v){if(v)saved[i].set.call(this,true)}})});
   try{return await job}finally{Ps.forEach((P,i)=>{if(saved[i])Object.defineProperty(P,'imageSmoothingEnabled',saved[i])})}}
 async function fileToPages(file,onp){ // → {pages:[jpeg dataURL], text:'', textPages}
-  const out={pages:[],text:''};
+  const out={pages:[],text:'',structured:null};
   if(/pdf$/i.test(file.type)||/\.pdf$/i.test(file.name)){
     const lib=await loadPdfjs();const doc=await lib.getDocument({data:new Uint8Array(await file.arrayBuffer()),cMapUrl:'https://cmaps.local/',cMapPacked:true,useWorkerFetch:false,isEvalSupported:false}).promise;
     for(let i=1;i<=doc.numPages;i++){onp&&onp(`PDF ${i}/${doc.numPages}쪽 읽는 중`);const pg=await doc.getPage(i);
-      const tc=await pg.getTextContent();out.text+=pdfLines(tc.items.filter(t=>'str' in t).map(t=>({str:t.str,x:t.transform[4],y:t.transform[5],w:t.width,h:Math.abs(t.transform[3])||t.height})))+'\n';
+      const tc=await pg.getTextContent();const items=tc.items.filter(t=>'str' in t).map(t=>({str:t.str,x:t.transform[4],y:t.transform[5],w:t.width,h:Math.abs(t.transform[3])||t.height}));out.text+=pdfLines(items)+'\n';const table=preciseTable(items,pg.getViewport({scale:1}).width);if(table)out.structured=table;
       const vp0=pg.getViewport({scale:1}),sc=Math.min(3.5,2400/vp0.width),vp=pg.getViewport({scale:sc});const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);
       await smoothRender(pg.render({canvasContext:g,viewport:vp}).promise,g);out.pages.push(c.toDataURL('image/jpeg',0.85))}
   }else{
@@ -812,7 +810,7 @@ function dotLines(B,M,W0,H0,D){const run=(get,set,h,w)=>{for(let y=D+3;y<h-D-3;y
     for(let x=0;x<w;x++){if(get(y,x)){if(a<0||x-last>8){flush();a=x;cnt=0}last=x;cnt++}}flush()}};
   run((y,x)=>B[y*W0+x],(y,x)=>{M[y*W0+x]=1},H0,W0);run((x,y)=>B[y*W0+x],(x,y)=>{M[y*W0+x]=1},W0,H0)}
 async function prepForOcr(src){const img=await new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.src=src});
-  const sc=Math.max(1,2400/img.naturalWidth);const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*sc);c.height=Math.round(img.naturalHeight*sc);const g=c.getContext('2d');g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(img,0,0,c.width,c.height);
+  const sc=Math.max(1,3000/img.naturalWidth);const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*sc);c.height=Math.round(img.naturalHeight*sc);const g=c.getContext('2d');g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(img,0,0,c.width,c.height);
   const d=g.getImageData(0,0,c.width,c.height),p=d.data,hist=new Array(256).fill(0);for(let i=0;i<p.length;i+=4){const v=(p[i]*0.299+p[i+1]*0.587+p[i+2]*0.114)|0;p[i]=v;hist[v]++}
   let sum=0,tot=p.length/4;for(let i=0;i<256;i++)sum+=i*hist[i];let sB=0,wB=0,best=0,th=160;for(let i=0;i<256;i++){wB+=hist[i];if(!wB)continue;const wF=tot-wB;if(!wF)break;sB+=i*hist[i];const mB=sB/wB,mF=(sum-sB)/wF,v=wB*wF*(mB-mF)*(mB-mF);if(v>best){best=v;th=i}}
   th=Math.min(200,th+12);const W0=c.width,H0=c.height,B=new Uint8Array(W0*H0);for(let i=0,j=0;i<p.length;i+=4,j++){B[j]=p[i]<=th?1:0;const v=B[j]?0:255;p[i]=p[i+1]=p[i+2]=v}g.putImageData(d,0,0);
@@ -997,6 +995,31 @@ function parseResult(raw){const parts=raw.split('@@OCR2@@'),P=(()=>{const sc=o=>
   const fa=out.factors||[];for(const f of Bv.factors||[]){const e=fa.find(x=>x.key===f.key);if(!e)fa.push(f);else{if(!e.grade&&f.grade){e.grade=f.grade;e.uncertain=true}if(!e.finding&&f.finding)e.finding=f.finding;if(!e.action&&f.action)e.action=f.action}}
   const gg=A.genGrades||Bv.genGrades||[];delete out.genGrades;if(out.name&&/검진|진단|일자|병원|의사|귀하|사업|근로/.test(out.name))delete out.name;
   if(fa.length)out.factors=fa;if(fa.some(f=>!f.grade))delete out.overall;else if(fa.length||gg.length)out.overall=worstG([...fa.map(f=>f.grade),...gg]);return out}
+
+function preciseTable(items,width){
+ const a=items.filter(t=>t.str.trim()).map(t=>({...t,x:t.x/width}));
+ const header=a.find(t=>t.str.replace(/\s/g,'')==='검진소견');
+ if(!header||!a.some(t=>t.str.includes('사후관리조치')))return null;
+ const bottom=a.filter(t=>t.y<header.y-8&&t.x>.40&&t.x<.60&&t.str.replace(/\s/g,'')==='건강진단정보')[0];
+ const z=a.filter(t=>t.y<header.y-9&&(!bottom||t.y>bottom.y));
+ const grade=t=>/^(A|B|C1|C2|CN|D1|D2|DN|R|U)$/.test(t.str.trim());
+ const anchors=z.filter(t=>t.x>.85&&t.x<.90&&grade(t)).sort((a,b)=>b.y-a.y);
+ if(!anchors.length)return null;
+ const text=(v)=>pdfLines(v.map(t=>({...t,x:t.x*width}))).replace(/\n/g,' ').trim();
+ const factors=anchors.map((t,i)=>{const hi=i?(anchors[i-1].y+t.y)/2:header.y-9,lo=i+1<anchors.length?(t.y+anchors[i+1].y)/2:t.y-22;
+ const row=z.filter(q=>q.y<=hi&&q.y>lo);const f=text(row.filter(q=>q.x>=.13&&q.x<.44));const label=text(row.filter(q=>q.x>=.69&&q.x<.85));let action=text(row.filter(q=>q.x>=.44&&q.x<.60));if(t.str.trim()==='A'&&action.includes('건강양호'))action=action.match(/건강양호\s*\(필요없음\)/)?.[0]||action;const key=hzKey(label||f);return {key:key||'dust',label:label||f.split(':')[0],grade:t.str.trim(),finding:f.includes(':')?f.slice(f.indexOf(':')+1).trim():f,action,uncertain:!key||!f};});
+ const overall=z.find(t=>t.x>.09&&t.x<.13&&grade(t));const fitness=z.find(t=>t.x>.60&&t.x<.69&&/^[가나다라]$/.test(t.str.trim()));
+ return {overall:overall?.str.trim()||'',fitness:fitness?.str.trim()||'',factors};
+}
+function enrichResult(raw,structured){const r=parseResult(raw);const t=raw.split('@@OCR2@@')[0];
+ const m=t.match(/(?:이\s*름|성\s*명)\s+([가-힣]{2,4})(?=\s|$)/)||t.match(/(?:\d{6}|\*{6})\s*-\s*[1-8*][*\d]{6}\s+([가-힣]{2,4})\s+\d{2}\s+[남여]/);if(m)r.name=m[1];
+ for(const [k,l] of [['bpS','혈압\\(최고\\)'],['bpD','혈압\\(최저\\)'],['height','신장'],['weight','체중']]){const m=t.match(new RegExp('(?:^|\\n)\\s*1-\\s*'+l+'\\s+(\\d+(?:\\.\\d+)?)'));if(m)r[k]=m[1];}
+ if(structured?.factors?.length){Object.assign(r,structured);r.mainFinding=r.factors.filter(f=>!['A','R'].includes(f.grade)).map(f=>f.label+': '+f.finding).join('; ');}
+ else {const m=t.match(/(?:검진소견|검\s*진\s*소\s*견)[\s\S]{0,220}?\n\s*(A|B|C1|C2|CN|D1|D2|DN|R|U)\s+/);if(m)r.overall=m[1];else delete r.overall;}
+ const dates=[],follow=[];for(const f of r.factors||[]){const m=f.action?.match(/다음\s*추적\s*검사\s*일\s*(20\d\d[.\-/]\d{1,2}[.\-/]\d{1,2})/);if(m){dates.push(fixDate(m[1]));const item=f.action.match(/추적\s*검사\s*:\s*(.*?)\s*다음\s*추적/)?.[1]||'검사항목 미기재 ('+f.label+')';follow.push(item+' / '+m[1]);}}
+ if(structured){delete r.nextDate;if(dates.length)r.nextDate=dates.sort()[0];}if(follow.length)r.followDetail=[...new Set(follow)].join('; ');
+ const n=t.match(/다음\s*검진일은?\s*(20\d\d\s*년\s*\d{1,2}\s*월\s*\d{1,2})/);if(n)r.regularDate=fixDate(n[1]);return r;}
+
 function parse1(raw){
   const text=raw.replace(/[ＬＩ]/g,'1').replace(/\r/g,''),flat=text.replace(/[ \t]+/g,' '),out={},sp='\\s*[|:：]?\\s*';
   const g=(re,f=x=>x)=>{const m=flat.match(re);return m?f(m[1].trim()):''};
@@ -1057,13 +1080,13 @@ function parse1(raw){
   return out}
 
 /* ---------- 화면 ---------- */
-const SCAN_LBL={examType:'검진 종류',name:'성명',age:'나이',sex:'성별',company:'사업장',dept:'작업부서',joinDate:'입사일',examDate:'검진일',clinic:'검진기관',doctor:'검진의사',hours:'1일 폭로(시간)',height:'신장',weight:'체중',bpS:'최고혈압',bpD:'최저혈압',gripL:'악력(좌)',gripR:'악력(우)',spiro:'폐기능 판정',fvc:'FVC',fvcPct:'%FVC',fev1:'FEV1',fev1Pct:'FEV1(%)',ratio:'FEV1/FVC',cxr:'흉부방사선',hearL:'청력(좌)',hearR:'청력(우)',nextDate:'다음 검사일',overall:'종합 판정',fitness:'업무수행 적합여부',mainFinding:'주요 소견',factors:'유해인자별 판정'};
+const SCAN_LBL={followDetail:'추적검사 항목 및 일자',regularDate:'다음 정기검진일',examType:'검진 종류',name:'성명',age:'나이',sex:'성별',company:'사업장',dept:'작업부서',joinDate:'입사일',examDate:'검진일',clinic:'검진기관',doctor:'검진의사',hours:'1일 폭로(시간)',height:'신장',weight:'체중',bpS:'최고혈압',bpD:'최저혈압',gripL:'악력(좌)',gripR:'악력(우)',spiro:'폐기능 판정',fvc:'FVC',fvcPct:'%FVC',fev1:'FEV1',fev1Pct:'FEV1(%)',ratio:'FEV1/FVC',cxr:'흉부방사선',hearL:'청력(좌)',hearR:'청력(우)',nextDate:'다음 검사일',overall:'종합 판정',fitness:'업무수행 적합여부',mainFinding:'주요 소견',factors:'유해인자별 판정'};
 function scanSection(){const w=W();return `<h3>⓪ 건강진단 결과지 원본</h3>
  <div class="scanbox" id="scanbox"><div class="muted-s" id="scanInfo">불러오는 중…</div></div>
  <div class="row" style="grid-template-columns:1fr;margin-top:6px"><label class="small-btn" style="display:inline-block;text-align:center">📄 결과지 올리기 (PDF·사진, 여러 장 가능)<input type="file" accept="application/pdf,image/*" multiple hidden onchange="scanUpload(this)"></label></div>
  <div class="scanbtns"><button class="small-btn" id="scanAuto" onclick="scanAuto()" disabled>결과지에서 자동 채우기</button><button class="small-btn" id="scanDel" onclick="scanDelete()" disabled>원본 삭제</button>
  <label style="font-size:12px;display:flex;gap:4px;align-items:center"><input type="checkbox" ${w.printScan?'checked':''} onchange="W().printScan=this.checked;save();renderPages()">인쇄할 때 원본도 뒤에 붙이기</label></div>
- <div class="muted-s" id="scanMsg"></div><div class="muted-s" style="text-align:right;opacity:.6">결과지 자동 인식 v4 (2026-11-23)</div>`}
+ <div class="muted-s" id="scanMsg"></div><div class="muted-s" style="text-align:right;opacity:.6">결과지 자동 인식 v5 (좌표 분석 시험판)</div>`}
 async function scanRefresh(){const w=W(),box=document.getElementById('scanbox');if(!box)return;const f=await fGet(w.id);if(W()!==w)return;
   document.getElementById('scanAuto').disabled=!f;document.getElementById('scanDel').disabled=!f;
   box.innerHTML=f?`<div class="thumbs">${f.pages.map((p,i)=>`<img src="${p}" alt="결과지 ${i+1}쪽" onclick="scanView(${i})">`).join('')}</div><div class="muted-s">${esc(f.name||'')} · ${f.pages.length}쪽 · 눌러서 크게 보기</div>`:'<div class="muted-s">아직 올린 결과지가 없어요. 건강진단 결과지(PDF 또는 스캔·사진)를 올리면 이 근로자 기록과 함께 보관되고, 내용을 자동으로 채울 수 있어요.</div>'}
@@ -1073,8 +1096,8 @@ function scanZoom(){document.querySelector('#scanOv .ovimg')?.classList.toggle('
 function scanMsg(t){const m=document.getElementById('scanMsg');if(m)m.textContent=t}
 async function scanUpload(inp,auto){const files=[...inp.files];inp.value='';if(!files.length)return;const w=W();
   let prev=await fGet(w.id);if(prev&&!auto&&!confirm('이미 올린 결과지가 있어요. 새 파일을 뒤에 추가할까요?\n(취소를 누르면 기존 원본을 바꿉니다)'))prev=null;
-  const rec={name:files.map(f=>f.name).join(', '),pages:prev?[...prev.pages]:[],text:prev?prev.text||'':'',added:new Date().toISOString().slice(0,10),v:prev&&(prev.v||0)<3?0:3};
-  try{for(const f of files){scanMsg(`${f.name} 읽는 중…`);const r=await fileToPages(f,scanMsg);rec.pages.push(...r.pages);rec.text+=(r.text||'')}
+  const rec={structured:prev?.structured||null,name:files.map(f=>f.name).join(', '),pages:prev?[...prev.pages]:[],text:prev?prev.text||'':'',added:new Date().toISOString().slice(0,10),v:prev&&(prev.v||0)<3?0:3};
+  try{for(const f of files){scanMsg(`${f.name} 읽는 중…`);const r=await fileToPages(f,scanMsg);rec.pages.push(...r.pages);rec.text+=(r.text||'');if(r.structured)rec.structured=r.structured}
     await fPut(w.id,rec);scanMsg(`결과지 ${rec.pages.length}쪽을 보관했어요.`);await scanRefresh();renderPages();
     if(auto||confirm('결과지 내용으로 빈 칸을 자동으로 채워볼까요?'))scanAuto()}
   catch(e){console.error(e);scanMsg('파일을 읽지 못했어요: '+e.message)}}
@@ -1082,7 +1105,7 @@ async function scanAuto(){if(SCAN.busy)return;const w=W(),f=await fGet(w.id);if(
   try{let txt=f.text||'';const hasText=txt.replace(/\s/g,'').length>150;
     if(!hasText&&(f.v||0)<3&&!confirm('이 결과지는 예전 방식으로 보관돼 있어서 글자를 잘 못 읽어요.\n\n[취소]를 누르고 "원본 삭제" 후 결과지를 다시 올리면 훨씬 잘 읽혀요.\n그래도 지금 그대로 읽을까요?')){scanMsg('원본 삭제 → 결과지 다시 올리기를 해 주세요.');return}
     if(!hasText){scanMsg('스캔본이라 글자 인식을 시작해요…');txt=await ocrPages(f.pages,scanMsg);f.ocr=txt;await fPut(w.id,f)}
-    const r=parseResult(txt);scanMsg('');scanReview(r,hasText)}
+    const r=enrichResult(txt,f.structured);scanMsg('');scanReview(r,hasText)}
   catch(e){console.error(e);scanMsg(e.message+' · 원본을 보면서 직접 입력해 주세요.')}
   finally{SCAN.busy=false;const b=document.getElementById('scanAuto');if(b)b.disabled=false}}
 function scanReview(r,fromText){const w=W(),keys=Object.keys(r).filter(k=>k!=='factors');
@@ -1094,13 +1117,13 @@ function scanReview(r,fromText){const w=W(),keys=Object.keys(r).filter(k=>k!=='f
    <table class="rv"><tr><th></th><th>항목</th><th>찾은 값</th><th>현재 값</th></tr>
    ${keys.map(k=>`<tr><td><input type="checkbox" data-rk="${k}" ${cur(k)?'':'checked'}></td><td>${SCAN_LBL[k]||k}</td><td><input data-rv="${k}" value="${esc(show(r[k]))}"${Array.isArray(r[k])?' title="0.5/1/2/3/4/6kHz 순서"':''}></td><td class="muted-s">${esc(cur(k)||'')}</td></tr>`).join('')}</table>
    ${r.factors?.length?`<h4 style="margin:10px 0 4px">유해인자별 판정 <span class="muted-s">(체크한 것만 추가·갱신)</span></h4><table class="rv"><tr><th></th><th>유해인자</th><th>등급</th><th>소견</th><th>사후관리 조치</th></tr>
-   ${r.factors.map((f,i)=>`<tr><td><input type="checkbox" data-fk="${i}" ${f.grade||f.finding?"checked":""}></td><td>${esc(HZ[f.key]?.name||f.label)}<div class="muted-s">${esc(f.label)}</div></td><td><select data-fg="${i}">${['','A','C1','C2','CN','D1','D2','DN','R','U'].map(g=>`<option${g===f.grade?' selected':''}>${g}</option>`).join('')}</select>${f.uncertain?'<div class="warnc">확인 필요</div>':''}</td><td><input data-ff="${i}" value="${esc(f.finding)}"></td><td><input data-fa="${i}" value="${esc(f.action)}"></td></tr>`).join('')}</table>`:''}
+   ${r.factors.map((f,i)=>`<tr><td><input type="checkbox" data-fk="${i}" ${f.grade||f.finding?"checked":""}></td><td>${esc(HZ[f.key]?.name||f.label)}<div class="muted-s">${esc(f.label)}</div></td><td><select data-fg="${i}">${['','A','B','C1','C2','CN','D1','D2','DN','R','U'].map(g=>`<option${g===f.grade?' selected':''}>${g}</option>`).join('')}</select>${f.uncertain?'<div class="warnc">확인 필요</div>':''}</td><td><input data-ff="${i}" value="${esc(f.finding)}"></td><td><input data-fa="${i}" value="${esc(f.action)}"></td></tr>`).join('')}</table>`:''}
    <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:10px"><button class="small-btn" onclick="document.getElementById('scanRv').remove()">취소</button><button class="small-btn pri" id="rvApply">선택 항목 넣기</button></div></div>`;
   document.getElementById('rvApply').onclick=()=>{
     ov.querySelectorAll('[data-rk]').forEach(c=>{if(!c.checked)return;const k=c.dataset.rk,v=ov.querySelector(`[data-rv="${k}"]`).value.trim();
       if(Array.isArray(r[k])){const a=v.split('/').map(s=>s.trim().replace(/^-$/,''));while(a.length<6)a.push('');w[k]=a.slice(0,6)}else w[k]=v});
     (r.factors||[]).forEach((f,i)=>{if(!ov.querySelector(`[data-fk="${i}"]`).checked)return;const o={key:f.key,label:f.label,grade:ov.querySelector(`[data-fg="${i}"]`).value,finding:ov.querySelector(`[data-ff="${i}"]`).value,action:ov.querySelector(`[data-fa="${i}"]`).value};
-      const ex=w.factors.find(x=>x.key===f.key);if(ex)Object.assign(ex,o);else w.factors.push(o)});
+      const ex=w.factors.find(x=>x.key===f.key&&x.label===f.label&&x.grade===f.grade);if(ex)Object.assign(ex,o);else w.factors.push(o)});
     if(typeof resetGive==='function'&&(!w.ppeGive||!w.ppeGive.length))try{resetGive()}catch(e){}
     save();fillSel();ov.remove();renderForm();renderPages();const nb=w.factors.filter(f=>!f.grade).length;scanMsg(nb?`⚠ 등급이 비어 있는 유해인자가 ${nb}개 있어요. 원본을 보고 ③에서 등급을 꼭 입력하세요.`:'선택한 항목을 넣었어요. 원본과 한 번 더 비교해 주세요.')}}
 async function scanDelete(){if(!confirm('이 근로자의 결과지 원본을 삭제할까요?'))return;await fPut(W().id,null);W().printScan=false;save();renderForm();renderPages()}
@@ -1153,7 +1176,7 @@ async function confView(i){const f=await fGet(W().id+'_conf');if(!f)return;let o
   ov.innerHTML=`<div class="ovbar"><b>배치전 검진 확인서 ${i+1}/${f.pages.length}쪽</b><span><button onclick="confView(${Math.max(0,i-1)})" ${i?'':'disabled'}>◀ 이전</button><button onclick="confView(${Math.min(f.pages.length-1,i+1)})" ${i<f.pages.length-1?'':'disabled'}>다음 ▶</button><button onclick="scanZoom()">확대/축소</button><button onclick="document.getElementById('scanOv').remove()">닫기 ✕</button></span></div><div class="ovimg"><img src="${f.pages[i]}" alt="확인서"></div>`}
 function confMsg(t){const m=document.getElementById('confMsg');if(m)m.textContent=t}
 async function confUpload(inp){const files=[...inp.files];inp.value='';if(!files.length)return;const w=W();
-  const prev=await fGet(w.id+'_conf');const rec={name:files.map(f=>f.name).join(', '),pages:prev?[...prev.pages]:[],added:pTODAY()};
+  const prev=await fGet(w.id+'_conf');const rec={structured:prev?.structured||null,name:files.map(f=>f.name).join(', '),pages:prev?[...prev.pages]:[],added:pTODAY()};
   try{for(const f of files){confMsg(`${f.name} 읽는 중…`);const r=await fileToPages(f,confMsg);rec.pages.push(...r.pages)}
     if(prev)rec.name=prev.name+', '+rec.name;
     await fPut(w.id+'_conf',rec);confMsg(`확인서 ${rec.pages.length}쪽을 보관했어요.`);await confRefresh()}
@@ -1180,5 +1203,15 @@ async function pendPreload(){const P=workers.filter(w=>w.pend);for(const w of P)
 {const _sr=scanRefresh;scanRefresh=async function(){await _sr();pendRefresh()}}
 load();fillSel();renderForm();renderPages();pendPreload();
 const q=new URLSearchParams(location.search).get('w');if(q){cur=+q;fillSel();renderForm();renderPages()}
+
+function printChoice(k){document.body.classList.add({counsel:'printCounsel',photo:'printPhoto',analysis:'printAnalysis'}[k]);window.print()}
+window.addEventListener('afterprint',()=>document.body.classList.remove('printCounsel','printPhoto','printAnalysis'));
+function vwList(){return JSON.parse(localStorage.getItem('vw_workers')||'[]')}
+async function vRead(key){return new Promise((resolve,reject)=>{const r=indexedDB.open('hl_vuln_files',1);r.onupgradeneeded=()=>r.result.createObjectStore('f');r.onerror=()=>reject(r.error);r.onsuccess=()=>{const db=r.result;const q=db.transaction('f').objectStore('f').get(key);q.onsuccess=()=>{resolve(q.result||[]);db.close()};q.onerror=()=>{reject(q.error);db.close()}}})}
+async function importVuln(){const list=vwList();const w=W();const matches=list.filter(v=>v.src===w.id||v.id===w.vulnId||(w.birthDate&&v.birth===w.birthDate&&v.name===w.name));let v=matches.length===1?matches[0]:null;if(!v){const n=prompt(list.map((x,i)=>`${i+1}. ${x.name} / ${x.birth||'생년월일 미입력'} / ${x.company||''}`).join('\n')+'\n가져올 근로자 번호');if(!n)return;v=list[Number(n)-1]}if(!v)return;if(w.name&&w.name!==v.name||w.birthDate&&v.birth&&w.birthDate!==v.birth){alert('성명 또는 생년월일 불일치: 연동 중단');return}if(!confirm(`${v.name} / ${v.birth||'생년월일 미입력'} 동일인 확인 후 연동할까요?`))return;Object.assign(w,{vulnId:v.id,name:v.name,birthDate:v.birth||w.birthDate,company:v.company||w.company,dept:v.trade||w.dept});save();renderForm();renderPages();for(const [key,kind] of [['pre','pre'],['gen','gen'],['op','op']])for(const d of await vRead(v.id+'_'+key)){if((w.linkDocs||[]).some(x=>x.source===d.src))continue;const blob=await(await fetch(d.src)).blob();await analyzeLinked(w,new File([blob],d.name,{type:blob.type}),kind,d.src)} }
+function exportVuln(){const w=W(),list=vwList();const v=list.find(x=>x.id===w.vulnId||x.src===w.id||(w.birthDate&&x.birth===w.birthDate&&x.name===w.name));if(!v){alert('취약근로자 관리에서 먼저 등록하고 동일인을 연결하세요.');return}if(v.name!==w.name||v.birth&&w.birthDate&&v.birth!==w.birthDate){alert('동일인 정보 불일치');return}v.src=w.id;v.aftercareSummary={overall:w.overall,fitness:w.fitness,consultDate:w.consultDate,consultNote:w.consultNote,reconsultDate:w.reconsultDate};localStorage.setItem('vw_workers',JSON.stringify(list));alert('사후관리 요약 연동 완료. 취약근로자 페이지를 새로고침하세요.')}
+async function readLinked(inp,kind){const w=W();const files=[...inp.files];inp.value='';for(const f of files)await analyzeLinked(w,f,kind)}
+async function analyzeLinked(w,f,kind,source){w.linkDocs=w.linkDocs||[];const d={kind,name:f.name,status:'분석 중',source:source||'',text:''};w.linkDocs.push(d);try{const r=await fileToPages(f,()=>{});let txt=r.text||'';if(txt.replace(/\s/g,'').length<150)txt=await ocrPages(r.pages,()=>{});d.text=txt;d.result=enrichResult(txt,r.structured);d.status='검수 필요';d.fileKey=w.id+'_linked_'+Date.now()+'_'+Math.random().toString(36).slice(2);await fPut(d.fileKey,r)}catch(e){d.status='분석 실패: '+e.message}save();if(W()===w){renderForm();renderPages()}}
+function reviewLinked(i){const d=W().linkDocs[i];if(!d.result)return alert('추출 결과 없음');if(d.kind==='op')return alert('의사소견 원문을 확인하고 근로 가능 소견란에 직접 입력하세요.');scanReview(d.result,true)}
 </script>
 </body></html>

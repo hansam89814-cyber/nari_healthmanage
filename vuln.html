@@ -1872,11 +1872,11 @@ $('#imp').onclick=()=>{const hm=LS.get('hm_workers',[])||[];const src=hm.filter(
   if(!src.length){alert('사후관리 페이지에 입력된 근로자가 없어요. (예시 근로자는 가져오지 않아요)');return}
   let add=0,upd=0;
   for(const h of src){
-    let w=W.find(x=>x.src===h.id)||W.find(x=>!x.src&&x.name===h.name);const isNew=!w;if(isNew)w=blank();
+    let w=W.find(x=>x.src===h.id)||W.find(x=>!x.src&&h.birthDate&&x.birth===h.birthDate&&x.name===h.name);const isNew=!w;if(isNew)w=blank();
     w.doc=w.doc||{op:false,gen:false,cv:false};w.bpc=w.bpc||{op:false,meas:false,agree:false};
     w.src=h.id;w.name=h.name;if(h.age&&!w.birth)w.age=h.age;w.company=w.company||h.company||'';w.trade=w.trade||h.dept||'';
-    if(h.bpS&&h.bpD&&!w.bpS){w.bpS=h.bpS;w.bpD=h.bpD;w.bpDate=h.examDate||''}
-    if(h.examType==='일반')w.doc.gen=true;
+    if(h.bpS&&h.bpD)w.examBP={s:h.bpS,d:h.bpD,date:h.examDate||''};
+    if(h.birthDate&&!w.birth)w.birth=h.birthDate; w.aftercareSummary={overall:h.overall,fitness:h.fitness,consultDate:h.consultDate,consultNote:h.consultNote,reconsultDate:h.reconsultDate};
     if(isNew){w.note='사후관리에서 가져옴 — 확인 필요';W.push(w);add++}else upd++}
   save();render();alert(`사후관리 근로자 ${add}명을 새로 넣고, ${upd}명을 갱신했어요.\n나이·혈압을 원본과 한 번 확인해 주세요.`)};
 
