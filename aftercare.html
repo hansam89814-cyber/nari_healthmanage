@@ -545,7 +545,7 @@ const PPE={
 
 /* ===================== 데이터 ===================== */
 const blank=()=>({id:Date.now()+''+Math.random().toString(36).slice(2,6),
- name:'',age:'',sex:'남',empno:'',company:'',dept:'',examType:'배치전',examDate:'',clinic:'',doctor:'',joinDate:'',hours:'',
+ name:'',age:'',sex:'남',empno:'',birthDate:'',company:'',dept:'',examType:'배치전',examDate:'',clinic:'',doctor:'',joinDate:'',hours:'',
  overall:'',fitness:'',mainFinding:'',nextDate:'',smoking:'',
  bpS:'',bpD:'',height:'',weight:'',gripL:'',gripR:'',fvc:'',fev1:'',fvcPct:'',fev1Pct:'',ratio:'',spiro:'',cxr:'',
  hearL:['','','','','',''],hearR:['','','','','',''],other:'',
@@ -591,7 +591,7 @@ function renderForm(){const w=W();
  const hzOpts=Object.entries(HZ).map(([k,h])=>`<option value="${k}">${h.name}</option>`).join('');
  document.getElementById('form').innerHTML=`${pendList()}${pendSection()}${scanSection()}
  <h3>① 인적사항</h3>
- <div class="row">${fld('name','성명')}${fld('empno','사번')}</div>
+ <div class="row">${fld('name','성명')}${fld('birthDate','생년월일','date')}</div>
  <div class="row three">${fld('age','나이','number')}${fld('sex','성별','',['남','여'])}${fld('hours','1일 폭로(시간)','number')}</div>
  <div class="row">${fld('company','사업장')}${fld('dept','작업부서/공종')}</div>
  <h3>② 검진 정보</h3>
@@ -625,7 +625,7 @@ function renderForm(){const w=W();
  <div class="hint">보호구명은 이상 소견에 해당하는 보호구로 자동으로 채워집니다. 수량을 비우면 출력물에 손으로 쓸 수 있습니다.</div>
  ${giveList(w).map((g,i)=>`<div class="row" style="grid-template-columns:1fr 70px auto;align-items:end"><div class="f"><label>보호구명</label><input data-give="${i}" data-gk="name" value="${esc(g.name)}"></div><div class="f"><label>수량</label><input data-give="${i}" data-gk="qty" value="${esc(g.qty)}"></div><button class="small-btn" onclick="rmGive(${i})">삭제</button></div>`).join('')}
  <button class="small-btn" onclick="addGive()">+ 보호구 추가</button> <button class="small-btn" onclick="resetGive()">해당 보호구로 다시 채우기</button>
- <h3>취약근로자 연동 및 첨부서류 분석</h3><button class="small-btn" onclick="importVuln()">취약근로자에서 불러오기</button> <button class="small-btn" onclick="exportVuln()">취약근로자로 보내기</button><div class="row one">${fld('workOpinion','의사소견 확인 (관리자 직접 입력)','area')}</div>${['pre','gen','op'].map((k,i)=>`<div class="f"><label>${['배치전 건강진단','일반건강진단','의사소견서'][i]}</label><input type="file" accept="application/pdf,image/*" multiple onchange="readLinked(this,'${k}')"></div>`).join('')}<div>${(w.linkDocs||[]).map((d,i)=>`<div class="hz"><b>${esc(d.name)}</b> · ${esc(d.status)}<details><summary>추출 원문 확인</summary><pre style="white-space:pre-wrap;max-height:180px;overflow:auto">${esc(d.text||'')}</pre></details><button class="small-btn" onclick="reviewLinked(${i})">검진 항목 검수</button></div>`).join('')}</div><h3>건강상담일지 기본문진</h3><div class="row">${fld('birthDate','생년월일','date')}${fld('career','현 작업 총 경력')}</div>${['과거력','수술력','약물력','알러지','음주','흡연','운동'].map((v,i)=>`<div class="row one">${fld('history'+i,v)}</div>`).join('')}<div class="row">${fld('counselDone','건강상담 완료','',['','예','아니오'])}${fld('ppeDone','보호구 지급 및 착용지도 완료','',['','예','아니오'])}</div><div class="row one">${fld('counselTopics','실시 상담 항목 코드 (B22 소음, E22 분진, H22 진동, B23 혈압, E23 당뇨, H23 근골격, B24 간장, E24 지질, H24 계절)','text')}</div><h3>⑤ 상담 기록 · 사진</h3><div class="row one">${fld('extraCounsel','추가 상담내용','area')}${fld('seasonOverride','계절별 취약사항 수정 (빈칸이면 자동)','area')}</div><div class="row">${fld('reconsultDate','재상담 예정일','date')}${fld('careStatus','사후관리 상태','',['','지속관리','조치완료','의료기관 방문 예정'])}</div>
+ <h3>취약근로자 연동 및 첨부서류 분석</h3><button class="small-btn" onclick="importVuln()">취약근로자에서 불러오기</button> <button class="small-btn" onclick="exportVuln()">취약근로자로 보내기</button><div class="row one">${fld('workOpinion','의사소견 확인 (관리자 직접 입력)','area')}</div>${['pre','gen','op'].map((k,i)=>`<div class="f"><label>${['배치전 건강진단','일반건강진단','의사소견서'][i]}</label><input type="file" accept="application/pdf,image/*" multiple onchange="readLinked(this,'${k}')"></div>`).join('')}<div>${(w.linkDocs||[]).map((d,i)=>`<div class="hz"><b>${esc(d.name)}</b> · ${esc(d.status)}<details><summary>추출 원문 확인</summary><pre style="white-space:pre-wrap;max-height:180px;overflow:auto">${esc(d.text||'')}</pre></details><button class="small-btn" onclick="reviewLinked(${i})">검진 항목 검수</button></div>`).join('')}</div><h3>건강상담일지 기본문진</h3><div class="row">${fld('career','현 작업 총 경력')}</div>${['과거력','수술력','약물력','알러지','음주','흡연','운동'].map((v,i)=>`<div class="row one">${fld('history'+i,v)}</div>`).join('')}<div class="row">${fld('counselDone','건강상담 완료','',['','예','아니오'])}${fld('ppeDone','보호구 지급 및 착용지도 완료','',['','예','아니오'])}</div><div class="row one">${fld('counselTopics','실시 상담 항목 코드 (B22 소음, E22 분진, H22 진동, B23 혈압, E23 당뇨, H23 근골격, B24 간장, E24 지질, H24 계절)','text')}</div><h3>⑤ 상담 기록 · 사진</h3><div class="row one">${fld('extraCounsel','추가 상담내용','area')}${fld('seasonOverride','계절별 취약사항 수정 (빈칸이면 자동)','area')}</div><div class="row">${fld('reconsultDate','재상담 예정일','date')}${fld('careStatus','사후관리 상태','',['','지속관리','조치완료','의료기관 방문 예정'])}</div>
  <div class="row three">${fld('consultDate','상담일','date')}<div class="f"><label>상담자</label><input value="보건관리자 이나리" readonly></div>${fld('place','장소')}</div>
  <div class="row one">${fld('consultNote','상담 내용 및 조치','area')}</div>
  <div class="photos-in">${w.photos.map((p,i)=>`<div class="ph"><img src="${p.src}"><input data-ph="${i}" placeholder="사진 설명" value="${esc(p.cap)}" style="width:100%;margin-top:3px;font-size:12px"><button class="small-btn" onclick="rmPhoto(${i})" style="margin-top:3px">삭제</button></div>`).join('')}</div>
@@ -698,7 +698,7 @@ function page1(w){const g=worst(w),d=dday(w.nextDate),bmi=num(w.height)&&num(w.w
   w.gripL&&`<tr><th>악력 좌/우</th><td>${esc(w.gripL)} / ${esc(w.gripR)} kg</td></tr>`].filter(Boolean).join('');
  const sp=spiro(w),au=audiogram(w);
  return `<div class="page">${head(w,'건강진단 사후관리 상담지',`${esc(w.examType)} 건강진단 결과 요약`)}
- <table><tr><th>성명</th><td>${esc(w.name)}</td><th>나이/성별</th><td>${esc(w.age)} / ${esc(w.sex)}</td><th>사번</th><td>${esc(w.empno)||'—'}</td></tr>
+ <table><tr><th>성명</th><td>${esc(w.name)}</td><th>나이/성별</th><td>${esc(w.age)} / ${esc(w.sex)}</td><th>생년월일</th><td>${esc(w.birthDate)||'—'}</td></tr>
  <tr><th>사업장</th><td colspan="3">${esc(w.company)}</td><th>작업부서</th><td>${esc(w.dept)}</td></tr>
  <tr><th>입사일</th><td>${esc(w.joinDate)}</td><th>1일 폭로</th><td>${w.hours?esc(w.hours)+'시간':''}</td><th>흡연</th><td>${esc(w.smoking)}</td></tr>
  <tr><th>유해인자</th><td colspan="5">${w.factors.map(f=>esc(f.label||HZ[f.key].name)).join(' · ')||'—'}</td></tr></table>
