@@ -587,11 +587,14 @@ function fld(k,label,type='text',opts){const v=W()[k]??'';
  if(opts)return `<div class="f"><label>${label}</label><select data-k="${k}">${opts.map(o=>`<option ${o==v?'selected':''}>${o}</option>`).join('')}</select></div>`;
  if(type==='area')return `<div class="f"><label>${label}</label><textarea data-k="${k}">${esc(v)}</textarea></div>`;
  return `<div class="f"><label>${label}</label><input type="${type}" data-k="${k}" value="${esc(v)}"></div>`}
+function setConsultToday(){const w=W();if(!w)return;w.consultDate=new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());save();renderForm();renderPages()}
 function renderForm(){const w=W();
  const hzOpts=Object.entries(HZ).map(([k,h])=>`<option value="${k}">${h.name}</option>`).join('');
- document.getElementById('form').innerHTML=`${pendList()}${pendSection()}${scanSection()}
- <h3>① 인적사항</h3>
+ document.getElementById('form').innerHTML=`<h3>상담일자 지정</h3>
  <div class="row one">${fld('consultDate','상담일자','date')}</div>
+ <button class="small-btn" type="button" onclick="setConsultToday()">오늘 날짜 입력</button>
+ ${pendList()}${pendSection()}${scanSection()}
+ <h3>① 인적사항</h3>
  <div class="row">${fld('name','성명')}${fld('birthDate','생년월일','date')}</div>
  <div class="row three">${fld('age','나이','number')}${fld('sex','성별','',['남','여'])}${fld('hours','1일 폭로(시간)','number')}</div>
  <div class="row">${fld('company','사업장')}${fld('dept','작업부서/공종')}</div>
@@ -642,7 +645,7 @@ document.addEventListener('input',e=>{const t=e.target,w=W();if(!w)return;
  else return;
  if(t.dataset.k==='name')fillSel();
  save();renderPages()});
-document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'&&e.target.id!=='sel')e.target.dispatchEvent(new Event('input',{bubbles:true}))});
+document.addEventListener('change',e=>{if((e.target.tagName==='SELECT'&&e.target.id!=='sel')||e.target.dataset.k==='consultDate')e.target.dispatchEvent(new Event('input',{bubbles:true}))});
 function addHz(){W().factors.push({key:'dust',label:'',grade:'A',finding:'정상',action:'필요없음'});save();renderForm();renderPages()}
 function rmHz(i){W().factors.splice(i,1);save();renderForm();renderPages()}
 function rmPhoto(i){W().photos.splice(i,1);save();renderForm();renderPages()}
